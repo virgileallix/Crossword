@@ -1,17 +1,19 @@
 /**
  * script.js
  *
- * Générateur de mot-croisé 15×15 “Computer Science” qui permet de :
- *  1. Choisir le nombre de mots (entre 5 et 40) au chargement.
- *  2. Tirer au hasard N mots dans un dictionnaire interne de ~50 termes CS.
- *  3. Construire un mot-croisé compact (chaque mot, sauf le premier, doit croiser au moins un mot déjà en place).
- *  4. Afficher la grille + définitions “Across” / “Down”.
- *  5. Boutons “Vérifier”, “Indice”, “Réinitialiser”.
- *  6. Code secret “→ → m t b” pour révéler la solution complète.
+ * Générateur de mot-croisé 15×15 “Computer Science” avec :
+ *  1. Choix du nombre de mots (5 → WORD_POOL.length)
+ *  2. Tirage aléatoire de N mots dans un grand dictionnaire
+ *  3. Placement compact (chaque mot, sauf le 1er, doit croiser au moins un mot déjà en place)
+ *  4. Affichage de la grille + définitions “Across” / “Down”
+ *  5. Boutons “Vérifier”, “Indice”, “Réinitialiser”
+ *  6. Code secret “→ → m t b” pour révéler la solution complète
+ *  7. Vidage explicite de la grille à chaque génération
+ *  8. Possibilité de “Entrée” dans #word-count pour lancer la génération
  */
 
 // -------------------------------------------------
-// 1) Dictionnaire interne (~50 termes CS en anglais)
+// 1) Dictionnaire (~50 termes CS en anglais)
 // -------------------------------------------------
 const WORD_POOL = [
   { answer: "ALGORITHM",      clue: "Step-by-step procedure to solve a problem." },
@@ -69,13 +71,13 @@ WORD_POOL.forEach(obj => obj.answer = obj.answer.toUpperCase());
 // -------------------------------------------------
 // 2) Variables globales de l’application
 // -------------------------------------------------
-let WORDS = [];            // Tableau des mots sélectionnés (définitions incluses)
-const GRID_SIZE = 15;      // Grille 15×15
-let grid = [];             // Matrice 15×15 (initialisée à null)
-let placedWords = [];      // Mots effectivement placés avec leurs infos
+let WORDS = [];              // Tableau des mots sélectionnés
+const GRID_SIZE = 15;        // Grille 15×15
+let grid = [];               // Matrice 15×15 (initialisée à null)
+let placedWords = [];        // Mots effectivement placés et leurs infos
 
 // -------------------------------------------------
-// 3) Initialisation de la grille à null
+// 3) Initialisation de la grille (grid[][] à null)
 // -------------------------------------------------
 function initGrid() {
   grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
@@ -100,7 +102,7 @@ function canPlace(word, r, c, dir) {
     if (r - 1 >= 0 && grid[r - 1][c] !== null) return false;
     if (r + L < GRID_SIZE && grid[r + L][c] !== null) return false;
   }
-  // 3) Chaque lettre
+  // 3) Chaque lettre doit être vide ou identique, et pas de voisins parasites
   for (let i = 0; i < L; i++) {
     const rr = r + (dir === "down" ? i : 0);
     const cc = c + (dir === "across" ? i : 0);
@@ -124,6 +126,7 @@ function canPlace(word, r, c, dir) {
 }
 
 function countCrossings(word, r, c, dir) {
+  // Compte combien de lettres du mot “word” croiseraient (lettres identiques déjà en place)
   let crosses = 0;
   for (let i = 0; i < word.length; i++) {
     const rr = r + (dir === "down" ? i : 0);
@@ -134,7 +137,7 @@ function countCrossings(word, r, c, dir) {
 }
 
 // -------------------------------------------------
-// 5) placeWordAt : place le mot dans grid[][] et storedWords
+// 5) placeWordAt : place un mot dans grid[][] et storedWords
 // -------------------------------------------------
 function placeWordAt(wordObj, r, c, dir) {
   const word = wordObj.answer;
@@ -164,9 +167,9 @@ function placeAllWords() {
   initGrid();
   placedWords = [];
 
-  if (WORDS.length === 0) return; // Si aucun mot sélectionné, pas de grille
+  if (WORDS.length === 0) return; // Si aucun mot sélectionné, ne rien faire
 
-  // 6.1) Premier mot (plus long) au centre en horizontal
+  // 6.1) Premier mot (plus long) au centre, horizontal
   {
     const first = WORDS[0].answer;
     const r0 = Math.floor(GRID_SIZE / 2);
@@ -231,7 +234,7 @@ function placeAllWords() {
         }
       }
     }
-    // Si aucun emplacement ne donne ≥1 croisement, on abandonne ce mot
+    // Si aucun emplacement ne permet ≥1 croisement, on “oublie” ce mot
   }
 }
 
@@ -272,7 +275,7 @@ function numberClues() {
     }
   });
 
-  // Définitions fixes (Across et Down) en fonction des numéros
+  // Définitions fixes (Across et Down)
   const acrossClues = [
     { number: 1,  clue: "Process of converting data into a code for security.", length: 10 },
     { number: 2,  clue: "Organized collection of data.", length: 8 },
@@ -306,6 +309,7 @@ function numberClues() {
 // -------------------------------------------------
 function renderGrid(numGrid) {
   const table = document.getElementById("crossword-grid");
+  // On vide explicitement la table avant reconstruction
   table.innerHTML = "";
 
   for (let r = 0; r < GRID_SIZE; r++) {
@@ -315,7 +319,7 @@ function renderGrid(numGrid) {
       if (grid[r][c] === null) {
         td.classList.add("black");
       } else {
-        // Case blanche : on met un <input>
+        // Case blanche : on ajoute un <input>
         const input = document.createElement("input");
         input.setAttribute("maxlength", "1");
         input.setAttribute("data-r", r);
@@ -323,7 +327,7 @@ function renderGrid(numGrid) {
         input.style.textTransform = "uppercase";
         td.appendChild(input);
 
-        // Si numGrid[r][c] non-null, afficher le numéro
+        // Si un numéro existe, on le place
         if (numGrid[r][c] !== null) {
           const span = document.createElement("div");
           span.classList.add("cell-number");
@@ -343,6 +347,7 @@ function renderGrid(numGrid) {
 function renderClues(acrossClues, downClues) {
   const olA = document.getElementById("across-clues");
   const olD = document.getElementById("down-clues");
+  // On vide les listes avant d’y insérer
   olA.innerHTML = "";
   olD.innerHTML = "";
 
@@ -368,6 +373,7 @@ function checkAnswers() {
     const sol = grid[r][c];
     const val = input.value.toUpperCase();
 
+    // Retirer l’éventuelle classe “indice”
     input.classList.remove("cell-hint");
     if (val === sol) {
       input.style.backgroundColor = "#c8e6c9"; // vert clair
@@ -444,50 +450,82 @@ document.addEventListener("keydown", e => {
 // 12) Fonction utilitaire : tirer N mots aléatoires
 // -------------------------------------------------
 function pickRandomWords(n) {
-  // On copie le WORD_POOL dans un array temporaire pour le mélanger
+  // On copie le pool dans un tableau temporaire et on le mélange
   const temp = [...WORD_POOL];
-  // Mélange par Fisher-Yates
   for (let i = temp.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [temp[i], temp[j]] = [temp[j], temp[i]];
   }
-  // On prend les n premiers
   return temp.slice(0, n);
 }
 
 // -------------------------------------------------
-// 13) Génération initiale et gestion du bouton “Générer”
+// 13) generateCrossword : génère la grille selon le nombre choisi
 // -------------------------------------------------
 function generateCrossword() {
   const countInput = document.getElementById("word-count");
   let n = parseInt(countInput.value);
-  if (isNaN(n) || n < 5) n = 5;
-  if (n > WORD_POOL.length) n = WORD_POOL.length;
 
-  // Tirer n mots aléatoires
+  // Validation de n
+  if (isNaN(n) || n < 5) {
+    alert("Veuillez entrer un nombre de mots compris entre 5 et " + WORD_POOL.length);
+    n = 5;
+    countInput.value = 5;
+  }
+  if (n > WORD_POOL.length) {
+    alert("Nombre maximal de mots autorisé : " + WORD_POOL.length);
+    n = WORD_POOL.length;
+    countInput.value = n;
+  }
+
+  console.log(`Génération d’un mot-croisé avec ${n} mots…`);
+
+  // 1) Tirer n mots aléatoires
   WORDS = pickRandomWords(n)
     .map((obj, idx) => ({ ...obj, originalIndex: idx }))
-    .sort((a, b) => b.answer.length - a.answer.length); // tri par longueur décroissante
+    .sort((a, b) => b.answer.length - a.answer.length);
 
-  // Construire la grille
+  // 2) Construire la grille (placement)
   placeAllWords();
+
+  // 3) Numérotation des définitions
   const { acrossClues, downClues, numGrid } = numberClues();
 
-  // Afficher dans le DOM
+  // 4) Affichage
   renderGrid(numGrid);
   renderClues(acrossClues, downClues);
-  resetGrid(); // s’assure que toutes les cases sont vides et prêtes
+
+  // 5) Réinitialiser les cases (vider toutes les saisies)
+  resetGrid();
+
+  console.log("Mot-croisé généré !");
 }
 
+// -------------------------------------------------
+// 14) Initialisation au chargement de la page
+// -------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
-  // Au chargement, on lie le bouton “Générer” et on fait un puzzle par défaut
+  // 1) On fixe la valeur maximale de #word-count au nombre de mots du dictionnaire
+  const countInput = document.getElementById("word-count");
+  countInput.setAttribute("max", WORD_POOL.length.toString());
+
+  // 2) Liaison du bouton “Générer le mot-croisé”
   document.getElementById("generate-button").addEventListener("click", generateCrossword);
 
-  // Boutons “Vérifier”, “Indice” et “Réinitialiser”
+  // 3) Permettre “Entrée” dans l’input #word-count pour déclencher la génération
+  countInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      generateCrossword();
+    }
+  });
+
+  // 4) Liaison des boutons “Vérifier”, “Indice” et “Réinitialiser”
   document.getElementById("check-button").addEventListener("click", checkAnswers);
   document.getElementById("hint-button").addEventListener("click", giveHint);
   document.getElementById("reset-button").addEventListener("click", resetGrid);
 
-  // Génération par défaut : 10 mots
+  // 5) Générer un mot-croisé initial par défaut (ici 10 mots)
+  countInput.value = 10;
   generateCrossword();
 });
