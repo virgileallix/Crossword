@@ -1,0 +1,108 @@
+/* -------------------------
+   Style général
+------------------------- */
+body {
+ font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 20px;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* -------------------------
+   Conteneur de la grille
+------------------------- */
+#crossword-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+#crossword-grid {
+  border-collapse: collapse;
+}
+
+/* Chaque case de la grille */
+#crossword-grid td {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #999;
+  position: relative;
+  background-color: white;
+}
+
+/* Les cases noires (“black squares”) */
+#crossword-grid td.black {
+  background-color: #444;
+}
+
+/* L’input dans chaque case */
+#crossword-grid input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  text-align: center;
+  font-size: 18px;
+  text-transform: uppercase;
+}
+
+#crossword-grid input:focus {
+  outline: 2px solid #5b9dd9;
+}
+
+/* Petite étiquette du numéro de case */
+#crossword-grid .cell-number {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  font-size: 10px;
+  color: #555;
+}
+
+/* -------------------------
+   Conteneur des définitions
+------------------------- */
+#clues-container {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.clues-block {
+  width: 45%;
+}
+
+.clues-block h2 {
+  margin-bottom: 5px;
+}
+
+.clues-block ol {
+  margin-left: 20px;
+}
+
+/* -------------------------
+   Boutons
+------------------------- */
+#controls {
+  text-align: center;
+  margin-top: 20px;
+}
+
+#controls button {
+  padding: 8px 16px;
+  margin: 0 10px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #4285f4;
+  border: none;
+  color: white;
+  border-radius: 4px;
+}
+
+#controls button:hover {
+  background-color: #357ae8;
+}
