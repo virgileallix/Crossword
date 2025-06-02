@@ -1,46 +1,65 @@
 /* ==============================
    Style général
    ============================== */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  margin: 20px;
-  background-color: #f5f5f5;
+  background-color: #f0f2f5;
   color: #333;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 h1 {
-  text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  font-size: 2rem;
+  color: #2c3e50;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* ==============================
    Conteneur de la grille
    ============================== */
 #crossword-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 25px;
+  background: #ffffff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
 }
 
 #crossword-grid {
   border-collapse: collapse;
 }
 
-/* Chaque case (td) de la grille */
+/* Chaque case de la grille */
 #crossword-grid td {
   width: 30px;
   height: 30px;
-  border: 1px solid #999;
+  border: 1px solid #bbb;
   position: relative;
-  background-color: white;
+  background-color: #fff;
+  transition: background-color 0.2s;
 }
 
-/* Cases noires (“black squares”) */
+/* Case noire */
 #crossword-grid td.black {
-  background-color: #444;
+  background-color: #34495e;
 }
 
-/* L’input à l’intérieur des cases blanches */
+/* Lorsqu’on survole une case blanche, on l’illumine légèrement */
+#crossword-grid td:not(.black):hover {
+  background-color: #ecf0f1;
+}
+
+/* L’input dans chaque case blanche */
 #crossword-grid input {
   width: 100%;
   height: 100%;
@@ -48,19 +67,23 @@ h1 {
   text-align: center;
   font-size: 18px;
   text-transform: uppercase;
+  background: transparent;
+  outline: none;
+  caret-color: #2980b9;
 }
 
+/* Focus sur l’input : on voit un contour bleu */
 #crossword-grid input:focus {
-  outline: 2px solid #5b9dd9;
+  outline: 2px solid #2980b9;
 }
 
-/* Petit numéro dans le coin supérieur gauche des cases qui commencent un mot */
+/* Petit numéro de case */
 #crossword-grid .cell-number {
   position: absolute;
   top: 1px;
   left: 2px;
   font-size: 10px;
-  color: #555;
+  color: #7f8c8d;
 }
 
 /* ==============================
@@ -69,19 +92,37 @@ h1 {
 #clues-container {
   display: flex;
   justify-content: space-around;
+  width: 100%;
+  max-width: 800px;
   margin-bottom: 20px;
 }
 
 .clues-block {
   width: 45%;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
 }
 
 .clues-block h2 {
-  margin-bottom: 5px;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  color: #2c3e50;
+  border-bottom: 2px solid #2980b9;
+  padding-bottom: 4px;
 }
 
 .clues-block ol {
   margin-left: 20px;
+  list-style-type: decimal;
+}
+
+.clues-block li {
+  margin-bottom: 6px;
+  line-height: 1.4;
+  font-size: 0.95rem;
+  color: #2c3e50;
 }
 
 /* ==============================
@@ -89,21 +130,36 @@ h1 {
    ============================== */
 #controls {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 #controls button {
   padding: 8px 16px;
-  margin: 0 10px;
-  font-size: 14px;
+  margin: 0 8px;
+  font-size: 0.95rem;
   cursor: pointer;
-  background-color: #4285f4;
+  background-color: #2980b9;
   border: none;
   color: white;
   border-radius: 4px;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 #controls button:hover {
-  background-color: #357ae8;
+  background-color: #1f618d;
+  transform: translateY(-1px);
+}
+
+#controls button:active {
+  transform: translateY(1px);
+}
+
+/* ==============================
+   Style pour les lettres révélées (indice)
+   ============================== */
+.cell-hint {
+  background-color: #f9e79f !important;
+  color: #000 !important;
+  font-weight: bold;
 }

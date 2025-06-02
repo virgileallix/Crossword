@@ -1,13 +1,16 @@
 /**
  * script.js
  *
- * Générateur de mot-croisé “Computer Science Crossword” pour une grille 15×15
- * avec la règle “chaque mot (sauf le 1er) doit croiser au moins un mot déjà en place”,
- * afin de créer un bloc dense et unique.
+ * Version 15×15 avec fonctions supplémentaires :
+ *  - Bouton “Indice” (révèle une lettre au hasard qui n’est pas encore correcte).
+ *  - Bouton “Réinitialiser” (vide toutes les cases et restaure le jeu à l’état initial).
+ *
+ * On garde la même logique de génération : chaque mot (sauf le 1er) doit
+ * absolument croiser au moins une lettre pour former un bloc compact.
  */
 
 // -------------------------------------------------
-// 1) Liste des mots + leurs définitions
+// 1) Liste des mots + définitions
 // -------------------------------------------------
 const RAW_WORDS = [
   { answer: "ALGORITHM",  clue: "Step-by-step procedure to solve a problem." },
@@ -31,12 +34,12 @@ const RAW_WORDS = [
   { answer: "PYTHON",     clue: "Programming language named after a snake." },
   { answer: "SERVER",     clue: "Computer that provides data to other computers." }
 ];
-// Mettre toutes les réponses en majuscules
+// On force les réponses en majuscules
 RAW_WORDS.forEach(obj => {
   obj.answer = obj.answer.toUpperCase();
 });
 
-// Pour placer du plus long au plus court
+// Pour optimiser le placement : du plus long au plus court
 let WORDS = RAW_WORDS
   .map((obj, idx) => ({ ...obj, originalIndex: idx }))
   .sort((a, b) => b.answer.length - a.answer.length);
@@ -45,35 +48,33 @@ let WORDS = RAW_WORDS
 // 2) Paramètres de la grille (15×15)
 // -------------------------------------------------
 const GRID_SIZE = 15;
-let grid = [];              // matrice 15×15 (initialisée à null plus bas)
-let placedWords = [];       // contiendra chaque mot réellement placé
+let grid = [];
+let placedWords = [];
 
 /**
- * Initialise la grille à null pour chaque case.
+ * Initialise grid[][] à null.
  */
 function initGrid() {
   grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
 }
 
 // -------------------------------------------------
-// 3) Vérification de placement & comptage des croisements
+// 3) Fonctions de vérification & comptage croisements
 // -------------------------------------------------
 /**
- * Vérifie si “word” peut être posé à (r,c) en direction “dir” ("across"|"down") :
- *  - Pas de dépassement de bord.
- *  - Chaque case est vide (null) ou contient déjà la même lettre (croisement légitime).
- *  - La case immédiatement avant/ après (dans la direction) est vide ou bord.
- *  - Aucun voisin orthogonal n’est non-null (sauf si c’est croisement).
+ * canPlace(word, r, c, dir)
+ *  - Vérifie si “word” (string) se place à (r,c) en dir (“across”|"down").
+ *  - N’autorise que les croisements légitimes, pas de débordement, pas de voisins « parasites ».
  */
 function canPlace(word, r, c, dir) {
   const L = word.length;
-  // 1) Limites
+  // 1) Vérifier limites
   if (dir === "across") {
     if (c < 0 || c + L > GRID_SIZE || r < 0 || r >= GRID_SIZE) return false;
   } else {
     if (r < 0 || r + L > GRID_SIZE || c < 0 || c >= GRID_SIZE) return false;
   }
-  // 2) Case avant/après
+  // 2) Case avant/après le mot (bord ou vide)
   if (dir === "across") {
     if (c - 1 >= 0 && grid[r][c - 1] !== null) return false;
     if (c + L < GRID_SIZE && grid[r][c + L] !== null) return false;
@@ -81,23 +82,23 @@ function canPlace(word, r, c, dir) {
     if (r - 1 >= 0 && grid[r - 1][c] !== null) return false;
     if (r + L < GRID_SIZE && grid[r + L][c] !== null) return false;
   }
-  // 3) Pour chaque lettre
+  // 3) Chaque lettre doit être vide ou même lettre (croisement), et pas de voisins orthogonaux parasites
   for (let i = 0; i < L; i++) {
     const rr = r + (dir === "down" ? i : 0);
     const cc = c + (dir === "across" ? i : 0);
     const ch = word[i];
-    // a) case vide ou même lettre
+
+    // a) La case doit être null ou ch
     if (grid[rr][cc] !== null && grid[rr][cc] !== ch) return false;
-    // b) si vide, vérifier les voisins orthogonaux
+
+    // b) Si la case est vide, vérifier qu’il n’y ait pas de voisins orthogonaux
     if (grid[rr][cc] === null) {
       if (dir === "across") {
-        // vérifier au-dessus et en-dessous
         if ((rr - 1 >= 0 && grid[rr - 1][cc] !== null) ||
             (rr + 1 < GRID_SIZE && grid[rr + 1][cc] !== null)) {
           return false;
         }
       } else {
-        // down : vérifier à gauche et à droite
         if ((cc - 1 >= 0 && grid[rr][cc - 1] !== null) ||
             (cc + 1 < GRID_SIZE && grid[rr][cc + 1] !== null)) {
           return false;
@@ -109,9 +110,9 @@ function canPlace(word, r, c, dir) {
 }
 
 /**
- * Compte le nombre de croisements (lettres communes) si l’on plaçait “word” à (r,c) en “dir”.
- * Sert à s’assurer qu’on a AU MOINS 1 croisement pour chaque mot (sauf le 1er).
- * Retourne un entier ≥ 0.
+ * countCrossings(word, r, c, dir)
+ *  - Retourne le nombre de croisements (lettres identiques déjà dans grid) si l’on plaçait “word”
+ *    à (r,c) en “dir”. Sert à exiger ≥1 croisement pour chaque mot (sauf le 1er).
  */
 function countCrossings(word, r, c, dir) {
   let crosses = 0;
@@ -124,13 +125,12 @@ function countCrossings(word, r, c, dir) {
 }
 
 // -------------------------------------------------
-// 4) Placement effectif du mot dans grid[][]
+// 4) placeWordAt : place le mot dans grid[][]
 // -------------------------------------------------
 /**
- * Pose “wordObj.answer” (chaîne majuscule) à (r,c) dans la direction “dir”.
- * Met à jour grid[][] et ajoute un objet à placedWords[] contenant :
- *   answer, clue, row, col, dir, cells (liste de {row,col}),
- *   originalIndex, clueNumber (initialement null).
+ * placeWordAt(wordObj, r, c, dir)
+ *  - Remplit grid[][] avec les lettres de wordObj.answer en commençant à (r,c) dans “dir”.
+ *  - Ajoute un objet à placedWords avec toutes les info utiles (cells, originalIndex, clueNumber=null, etc.).
  */
 function placeWordAt(wordObj, r, c, dir) {
   const word = wordObj.answer;
@@ -154,23 +154,22 @@ function placeWordAt(wordObj, r, c, dir) {
 }
 
 // -------------------------------------------------
-// 5) Algorithme de placement (tous dans un îlot dense)
+// 5) placeAllWords : placement compact 15×15
 // -------------------------------------------------
 /**
- * 1) Initialiser la grille à null.
- * 2) Placer le mot le plus long (WORDS[0]) au centre en “across”.
- * 3) Pour chaque mot i = 1…N-1, ne placer QUE s’il peut créer ≥ 1 croisement :
- *    - On tente d’abord tous les croisements “naturels” lettre‐à‐lettre.
- *    - Si toujours non placé, on balaie toutes les positions “across” ET “down”,
- *      MAIS n’autorise que celles où countCrossings(...) ≥ 1.
- *    - Si aucun emplacement ne donne ≥ 1 croisement, on abandonne le mot (il ne sera pas placé).
- * 4) En résulte un unique bloc solide sans mot isolé.
+ * 1) initGrid()
+ * 2) Placer le mot le plus long (WORDS[0]) au centre en “across”
+ * 3) Pour chaque mot i = 1…n-1 :
+ *    - Tenter tous les croisements “naturels”
+ *    - Si non placé, balayer tout “across” et “down” en exigeant countCrossings ≥ 1
+ *    - Sinon, abandonner le mot
+ * Résultat : un bloc unique dense dans la grille.
  */
 function placeAllWords() {
   initGrid();
   placedWords = [];
 
-  // 5.1) Placer le premier mot (plus long) au centre, horizontalement
+  // 5.1) Placer le premier mot (le plus long) au centre
   {
     const first = WORDS[0].answer;
     const r0 = Math.floor(GRID_SIZE / 2);
@@ -178,94 +177,79 @@ function placeAllWords() {
     placeWordAt(WORDS[0], r0, c0, "across");
   }
 
-  // 5.2) Pour chaque mot restant, exiger ≥ 1 croisement
+  // 5.2) Pour chaque mot suivant, exiger ≥1 croisement
   for (let wi = 1; wi < WORDS.length; wi++) {
     const wordObj = WORDS[wi];
     const word = wordObj.answer;
     let placed = false;
 
-    // 5.2.a) Tenter toutes les intersections possibles (croisements “naturels”)
+    // 5.2.a) Essayer toutes les intersections possibles
     for (let letterIdx = 0; letterIdx < word.length && !placed; letterIdx++) {
       const ch = word[letterIdx];
-      // Pour chaque mot déjà posé
       for (let pw of placedWords) {
         for (let cellIdx = 0; cellIdx < pw.cells.length && !placed; cellIdx++) {
           const { row: rr, col: cc } = pw.cells[cellIdx];
           if (grid[rr][cc] === ch) {
-            // Si pw.dir est “across”, on tente ce mot en “down” & vice versa
-            const dir = (pw.dir === "across" ? "down" : "across");
-            // On calcule le départ pour que word[letterIdx] coïncide avec (rr,cc)
+            const dir = pw.dir === "across" ? "down" : "across";
             const startR = rr - (dir === "down" ? letterIdx : 0);
             const startC = cc - (dir === "across" ? letterIdx : 0);
-            if (canPlace(word, startR, startC, dir)) {
-              // On vérifie qu’il y a au moins 1 croisement
-              if (countCrossings(word, startR, startC, dir) >= 1) {
-                placeWordAt(wordObj, startR, startC, dir);
-                placed = true;
-              }
+            if (canPlace(word, startR, startC, dir) && countCrossings(word, startR, startC, dir) >= 1) {
+              placeWordAt(wordObj, startR, startC, dir);
+              placed = true;
             }
           }
         }
       }
     }
 
-    // 5.2.b) Si non placé, on balaie TOUTES les cases “across” en exigeant ≥ 1 croisement
+    // 5.2.b) Si pas encore placé, balayer tout “across”
     if (!placed) {
       for (let r = 0; r < GRID_SIZE && !placed; r++) {
         for (let c = 0; c <= GRID_SIZE - word.length && !placed; c++) {
-          if (canPlace(word, r, c, "across") &&
-              countCrossings(word, r, c, "across") >= 1) {
+          if (canPlace(word, r, c, "across") && countCrossings(word, r, c, "across") >= 1) {
             placeWordAt(wordObj, r, c, "across");
             placed = true;
           }
         }
       }
     }
-    // 5.2.c) Si toujours non placé, on balaie TOUTES les cases “down” en exigeant ≥ 1 croisement
+    // 5.2.c) Sinon, balayer tout “down”
     if (!placed) {
       for (let r = 0; r <= GRID_SIZE - word.length && !placed; r++) {
         for (let c = 0; c < GRID_SIZE && !placed; c++) {
-          if (canPlace(word, r, c, "down") &&
-              countCrossings(word, r, c, "down") >= 1) {
+          if (canPlace(word, r, c, "down") && countCrossings(word, r, c, "down") >= 1) {
             placeWordAt(wordObj, r, c, "down");
             placed = true;
           }
         }
       }
     }
-    // Si on n’a trouvé AUCUN emplacement où il croise au moins une lettre, on ne place pas ce mot.
+    // Si aucun placement ne donne ≥1 croisement, on abandonne ce mot
   }
 }
 
 // -------------------------------------------------
-// 6) Numérotation “Across” / “Down”
+// 6) numberClues : numérote et construit acrossClues/downClues
 // -------------------------------------------------
 /**
- * Parcourt placedWords[] et détecte, pour chaque mot, s’il démarre un “Across” ou un “Down”.
- * Si oui, on lui assigne un numéro (incrémental) et on stocke ce numéro dans numGrid[r][c].
- * On retourne ensuite { acrossClues, downClues, numGrid } :
- *   - acrossClues (array) : liste d’objets { number, clue, length, answer, r, c }
- *   - downClues   (array) : idem pour “Down”
- *   - numGrid     (matrix) : GRID_SIZE×GRID_SIZE contenant un numéro ou null
+ * Parcourt placedWords[] pour détecter chaque début d’“Across” ou de “Down”.
+ * Si c’est le cas, assigne un numéro croissant (commence à 1) et note numGrid[r][c].
+ * RENVOIE : { acrossClues, downClues, numGrid }
  */
 function numberClues() {
-  // 6.1) Préparer numGrid rempli de null
   const numGrid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
   let counter = 1;
 
-  // 6.2) Pour chaque mot déjà placé
   for (let pw of placedWords) {
     const { row: r, col: c, dir } = pw;
     let isAcrossStart = false;
     let isDownStart   = false;
 
-    // Début d'un “Across” ?
     if (dir === "across") {
       if ((c - 1 < 0 || grid[r][c - 1] === null) && (c + 1 < GRID_SIZE && grid[r][c + 1] !== null)) {
         isAcrossStart = true;
       }
     }
-    // Début d'un “Down” ?
     if (dir === "down") {
       if ((r - 1 < 0 || grid[r - 1][c] === null) && (r + 1 < GRID_SIZE && grid[r + 1][c] !== null)) {
         isDownStart = true;
@@ -282,7 +266,6 @@ function numberClues() {
     }
   }
 
-  // 6.3) Constituer acrossClues & downClues
   const acrossClues = [];
   const downClues   = [];
   for (let pw of placedWords) {
@@ -314,13 +297,12 @@ function numberClues() {
 }
 
 // -------------------------------------------------
-// 7) Rendu de la grille HTML
+// 7) renderGrid : affiche la grille dans le DOM
 // -------------------------------------------------
 /**
- * Construit la balise <table id="crossword-grid"> en fonction de grid[][] et numGrid[][] :
- *   - Si grid[r][c] === null ⇒ <td class="black"></td>
- *   - Sinon ⇒ <td> avec un <input maxlength="1" data-r="r" data-c="c"> 
- *              et, si numGrid[r][c] ≠ null, un <div class="cell-number">num</div>
+ * Construit la table HTML #crossword-grid à partir de grid[][] et numGrid[][].
+ * Cases noires => <td class="black"></td>
+ * Cases blanches => <td><input ...> [+ petit numéro si numGrid[r][c] != null]</td>
  */
 function renderGrid(numGrid) {
   const table = document.getElementById("crossword-grid");
@@ -333,7 +315,7 @@ function renderGrid(numGrid) {
       if (grid[r][c] === null) {
         td.classList.add("black");
       } else {
-        // Case blanche : on ajoute un <input>
+        // Case blanche : on met un input
         const input = document.createElement("input");
         input.setAttribute("maxlength", "1");
         input.setAttribute("data-r", r);
@@ -341,7 +323,7 @@ function renderGrid(numGrid) {
         input.style.textTransform = "uppercase";
         td.appendChild(input);
 
-        // Si un numéro doit apparaître ici
+        // Si numGrid[r][c] existe, on affiche le petit numéro
         if (numGrid[r][c] !== null) {
           const span = document.createElement("div");
           span.classList.add("cell-number");
@@ -356,10 +338,10 @@ function renderGrid(numGrid) {
 }
 
 // -------------------------------------------------
-// 8) Rendu des définitions (clues)
+// 8) renderClues : affiche les définitions (Across/Down)
 // -------------------------------------------------
 /**
- * Remplit les listes <ol id="across-clues"> et <ol id="down-clues">.
+ * Remplit <ol id="across-clues"> et <ol id="down-clues">.
  * Format : “num. définition (longueur)”
  */
 function renderClues(acrossClues, downClues) {
@@ -381,22 +363,64 @@ function renderClues(acrossClues, downClues) {
 }
 
 // -------------------------------------------------
-// 9) Vérifier / Afficher toutes les réponses
+// 9) Fonctions “Vérifier”, “Indice”, “Reveal All”, “Réinitialiser”
 // -------------------------------------------------
+/**
+ * Vérifier : colorie en vert clair si la lettre entrée est bonne,
+ * sinon en rouge clair. Ne bloque pas l’input (on peut corriger).
+ */
 function checkAnswers() {
   document.querySelectorAll("#crossword-grid input").forEach(input => {
     const r = parseInt(input.getAttribute("data-r"));
     const c = parseInt(input.getAttribute("data-c"));
     const sol = grid[r][c];
     const val = input.value.toUpperCase();
+    // Enlever toute classe d’indice précédemment appliquée
+    input.classList.remove("cell-hint");
     if (val === sol) {
-      input.style.backgroundColor = "#c8e6c9"; // vert clair si correct
+      input.style.backgroundColor = "#c8e6c9"; // vert clair
     } else {
-      input.style.backgroundColor = "#ffcdd2"; // rouge clair sinon
+      input.style.backgroundColor = "#ffcdd2"; // rouge clair
     }
   });
 }
 
+/**
+ * Indice : choisit aléatoirement une case blanche qui n’a pas encore
+ * la bonne lettre, et place la bonne lettre dedans. Ajoute la classe
+ * .cell-hint pour colorer le fond (jaune clair).
+ */
+function giveHint() {
+  // Récupérer toutes les cases <input>
+  const allInputs = Array.from(document.querySelectorAll("#crossword-grid input"));
+
+  // Filtrer celles qui sont “incomplètes” (soit vides, soit incorrectes)
+  const incorrectOrEmpty = allInputs.filter(input => {
+    const r = parseInt(input.getAttribute("data-r"));
+    const c = parseInt(input.getAttribute("data-c"));
+    const sol = grid[r][c];
+    const val = input.value.toUpperCase();
+    return val !== sol;
+  });
+
+  if (incorrectOrEmpty.length === 0) {
+    alert("Toutes les lettres sont déjà correctes ! Vous avez terminé le mot-croisé.");
+    return;
+  }
+
+  // Choisir une case au hasard parmi celles-ci
+  const randIndex = Math.floor(Math.random() * incorrectOrEmpty.length);
+  const chosenInput = incorrectOrEmpty[randIndex];
+  const rr = parseInt(chosenInput.getAttribute("data-r"));
+  const cc = parseInt(chosenInput.getAttribute("data-c"));
+  chosenInput.value = grid[rr][cc];
+  chosenInput.disabled = true;                // on bloque la modification
+  chosenInput.classList.add("cell-hint");     // style “indice” (jaune clair)
+}
+
+/**
+ * Reveal All : remplit toutes les cases avec la solution, désactive les inputs.
+ */
 function revealAll() {
   document.querySelectorAll("#crossword-grid input").forEach(input => {
     const r = parseInt(input.getAttribute("data-r"));
@@ -408,15 +432,31 @@ function revealAll() {
   });
 }
 
+/**
+ * Réinitialiser : vide toutes les cases, remet les inputs en état normal.
+ * Ne régénère pas la grille complète, juste on efface les saisies/indices.
+ */
+function resetGrid() {
+  document.querySelectorAll("#crossword-grid input").forEach(input => {
+    input.value = "";
+    input.disabled = false;
+    input.style.backgroundColor = "transparent";
+    input.classList.remove("cell-hint");
+  });
+}
+
 // -------------------------------------------------
-// 10) Initialisation au chargement
+// 10) Initialisation au chargement de la page
 // -------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
   placeAllWords();
   const { acrossClues, downClues, numGrid } = numberClues();
+
   renderGrid(numGrid);
   renderClues(acrossClues, downClues);
 
   document.getElementById("check-button").addEventListener("click", checkAnswers);
+  document.getElementById("hint-button").addEventListener("click", giveHint);
   document.getElementById("reveal-button").addEventListener("click", revealAll);
+  document.getElementById("reset-button").addEventListener("click", resetGrid);
 });
