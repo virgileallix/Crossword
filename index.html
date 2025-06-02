@@ -1,639 +1,622 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Computer Science Crossword - 20 Words</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-
-        .game-wrapper {
-            display: flex;
-            gap: 50px;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        .crossword-container {
-            background: #fafafa;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .crossword {
-            display: inline-block;
-            border: 3px solid #333;
-            background: #333;
-        }
-
-        table {
-            border-collapse: collapse;
-            border-spacing: 0;
-        }
-
-        td {
-            width: 35px;
-            height: 35px;
-            border: 1px solid #ddd;
-            position: relative;
-            padding: 0;
-        }
-
-        td.black {
-            background: #333;
-            border-color: #333;
-        }
-
-        td.white {
-            background: white;
-        }
-
-        td.highlighted {
-            background: #e3f2fd !important;
-        }
-
-        input {
-            width: 100%;
-            height: 100%;
-            border: none;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            padding: 0;
-            outline: none;
-            background: transparent;
-        }
-
-        input:focus {
-            background: #fff59d;
-            outline: 3px solid #2196F3;
-            z-index: 1;
-        }
-
-        .num {
-            position: absolute;
-            top: 2px;
-            left: 3px;
-            font-size: 10px;
-            font-weight: bold;
-            line-height: 1;
-            color: #666;
-        }
-
-        .clues-container {
-            flex: 1;
-            max-width: 450px;
-        }
-
-        .clue-group {
-            margin-bottom: 30px;
-            background: #f8f8f8;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .clue-group h3 {
-            margin: 0 0 15px 0;
-            color: #2196F3;
-            font-size: 18px;
-            border-bottom: 2px solid #2196F3;
-            padding-bottom: 8px;
-        }
-
-        .clue {
-            padding: 7px 10px;
-            margin: 4px 0;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 14px;
-            line-height: 1.5;
-            transition: all 0.2s;
-        }
-
-        .clue:hover {
-            background: #e8e8e8;
-            transform: translateX(3px);
-        }
-
-        .clue.active {
-            background: #2196F3;
-            color: white;
-            font-weight: bold;
-        }
-
-        .clue-num {
-            font-weight: bold;
-            display: inline-block;
-            min-width: 25px;
-            color: #2196F3;
-        }
-
-        .clue.active .clue-num {
-            color: white;
-        }
-
-        .controls {
-            text-align: center;
-            margin-top: 30px;
-        }
-
-        button {
-            padding: 12px 30px;
-            margin: 0 8px;
-            font-size: 16px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-
-        button.check {
-            background: #4CAF50;
-            color: white;
-        }
-
-        button.check:hover {
-            background: #45a049;
-        }
-
-        button.solve {
-            background: #2196F3;
-            color: white;
-        }
-
-        button.solve:hover {
-            background: #1976D2;
-        }
-
-        button.reset {
-            background: #f44336;
-            color: white;
-        }
-
-        button.reset:hover {
-            background: #da190b;
-        }
-
-        .status {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 16px;
-            font-weight: 500;
-            color: #666;
-        }
-
-        .correct {
-            background: #a5d6a7 !important;
-        }
-
-        .incorrect {
-            background: #ef9a9a !important;
-        }
-
-        .word-list {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f0f0f0;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .word-list h4 {
-            margin: 0 0 10px 0;
-            color: #666;
-        }
-
-        .word-list span {
-            display: inline-block;
-            margin: 3px 5px;
-            padding: 3px 8px;
-            background: white;
-            border-radius: 3px;
-            font-size: 13px;
-            font-family: monospace;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Computer Science Crossword – 20 words (corrigé)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .game-wrapper {
+      display: flex;
+      gap: 50px;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .crossword-container {
+      background: #fafafa;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .crossword {
+      display: inline-block;
+      border: 3px solid #333;
+      background: #333;
+    }
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+    }
+    td {
+      width: 35px;
+      height: 35px;
+      border: 1px solid #ddd;
+      position: relative;
+      padding: 0;
+    }
+    td.black {
+      background: #333;
+      border-color: #333;
+    }
+    td.white {
+      background: #fff;
+    }
+    td.highlighted {
+      background: #e3f2fd !important;
+    }
+    input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      text-transform: uppercase;
+      padding: 0;
+      outline: none;
+      background: transparent;
+    }
+    input:focus {
+      background: #fff59d;
+      outline: 3px solid #2196F3;
+      z-index: 1;
+    }
+    .num {
+      position: absolute;
+      top: 2px;
+      left: 3px;
+      font-size: 10px;
+      font-weight: bold;
+      color: #666;
+      line-height: 1;
+    }
+    .clues-container {
+      flex: 1;
+      max-width: 450px;
+    }
+    .clue-group {
+      margin-bottom: 30px;
+      background: #f8f8f8;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .clue-group h3 {
+      margin: 0 0 15px 0;
+      color: #2196F3;
+      font-size: 18px;
+      border-bottom: 2px solid #2196F3;
+      padding-bottom: 8px;
+    }
+    .clue {
+      padding: 7px 10px;
+      margin: 4px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.5;
+      transition: all 0.2s;
+    }
+    .clue:hover {
+      background: #e8e8e8;
+      transform: translateX(3px);
+    }
+    .clue.active {
+      background: #2196F3;
+      color: white;
+      font-weight: bold;
+    }
+    .clue-num {
+      font-weight: bold;
+      display: inline-block;
+      min-width: 25px;
+      color: #2196F3;
+    }
+    .clue.active .clue-num {
+      color: white;
+    }
+    .controls {
+      text-align: center;
+      margin-top: 30px;
+    }
+    button {
+      padding: 12px 30px;
+      margin: 0 8px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    button.check {
+      background: #4CAF50;
+      color: white;
+    }
+    button.check:hover {
+      background: #45a049;
+    }
+    button.solve {
+      background: #2196F3;
+      color: white;
+    }
+    button.solve:hover {
+      background: #1976D2;
+    }
+    button.reset {
+      background: #f44336;
+      color: white;
+    }
+    button.reset:hover {
+      background: #da190b;
+    }
+    .status {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #666;
+    }
+    .correct {
+      background: #a5d6a7 !important;
+    }
+    .incorrect {
+      background: #ef9a9a !important;
+    }
+    .word-list {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f0f0f0;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .word-list h4 {
+      margin: 0 0 10px 0;
+      color: #666;
+    }
+    .word-list span {
+      display: inline-block;
+      margin: 3px 5px;
+      padding: 3px 8px;
+      background: white;
+      border-radius: 3px;
+      font-size: 13px;
+      font-family: monospace;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Computer Science Crossword (20 words)</h1>
-        
-        <div class="game-wrapper">
-            <div class="crossword-container">
-                <div class="crossword">
-                    <table id="grid"></table>
-                </div>
-            </div>
-            
-            <div class="clues-container">
-                <div class="clue-group">
-                    <h3>Across →</h3>
-                    <div id="across-clues"></div>
-                </div>
-                
-                <div class="clue-group">
-                    <h3>Down ↓</h3>
-                    <div id="down-clues"></div>
-                </div>
-            </div>
+  <div class="container">
+    <h1>Computer Science Crossword (20 words) – corrigé</h1>
+    
+    <div class="game-wrapper">
+      <div class="crossword-container">
+        <div class="crossword">
+          <table id="grid"></table>
         </div>
-        
-        <div class="controls">
-            <button class="check" onclick="checkAnswers()">Check Answers</button>
-            <button class="solve" onclick="showSolution()">Show Solution</button>
-            <button class="reset" onclick="resetGrid()">Reset</button>
+      </div>
+      
+      <div class="clues-container">
+        <div class="clue-group">
+          <h3>Across →</h3>
+          <div id="across-clues"></div>
         </div>
-        
-        <div class="status" id="status"></div>
-        
-        <div class="word-list">
-            <h4>Word Bank</h4>
-            <span>ALGORITHM</span>
-            <span>BINARY</span>
-            <span>BUG</span>
-            <span>CACHE</span>
-            <span>COMPILER</span>
-            <span>CPU</span>
-            <span>DATABASE</span>
-            <span>DEBUG</span>
-            <span>ENCRYPTION</span>
-            <span>FIREWALL</span>
-            <span>FUNCTION</span>
-            <span>HARDWARE</span>
-            <span>INPUT</span>
-            <span>JAVA</span>
-            <span>KERNEL</span>
-            <span>LOOP</span>
-            <span>NETWORK</span>
-            <span>OUTPUT</span>
-            <span>PYTHON</span>
-            <span>SERVER</span>
+        <div class="clue-group">
+          <h3>Down ↓</h3>
+          <div id="down-clues"></div>
         </div>
+      </div>
     </div>
+    
+    <div class="controls">
+      <button class="check" onclick="checkAnswers()">Check Answers</button>
+      <button class="solve" onclick="showSolution()">Show Solution</button>
+      <button class="reset" onclick="resetGrid()">Reset</button>
+    </div>
+    
+    <div class="status" id="status"></div>
+    
+    <div class="word-list">
+      <h4>Word Bank</h4>
+      <span>ALGORITHM</span>
+      <span>BINARY</span>
+      <span>BUG</span>
+      <span>CACHE</span>
+      <span>COMPILER</span>
+      <span>CPU</span>
+      <span>DATABASE</span>
+      <span>DEBUG</span>
+      <span>ENCRYPTION</span>
+      <span>FIREWALL</span>
+      <span>FUNCTION</span>
+      <span>HARDWARE</span>
+      <span>INPUT</span>
+      <span>JAVA</span>
+      <span>KERNEL</span>
+      <span>LOOP</span>
+      <span>NETWORK</span>
+      <span>OUTPUT</span>
+      <span>PYTHON</span>
+      <span>SERVER</span>
+    </div>
+  </div>
 
-    <script>
-        const GRID_SIZE = 16;
-        
-        // Configuration optimisée pour 20 mots interconnectés
-        const crosswordData = {
-            across: [
-                {num: 1, x: 0, y: 1, word: "ALGORITHM", clue: "Step-by-step procedure to solve a problem"},
-                {num: 5, x: 0, y: 3, word: "BINARY", clue: "Number system with only 0s and 1s"},
-                {num: 7, x: 7, y: 3, word: "BUG", clue: "Error in a program"},
-                {num: 8, x: 1, y: 5, word: "CACHE", clue: "High-speed data storage between memory and CPU"},
-                {num: 9, x: 7, y: 5, word: "COMPILER", clue: "Program that translates code into machine language"},
-                {num: 12, x: 0, y: 7, word: "CPU", clue: "Brain of the computer (abbr.)"},
-                {num: 13, x: 4, y: 7, word: "DATABASE", clue: "Organized collection of data"},
-                {num: 15, x: 0, y: 9, word: "DEBUG", clue: "To find and remove errors in code"},
-                {num: 17, x: 6, y: 9, word: "ENCRYPTION", clue: "Process of converting data into a code for security"},
-                {num: 20, x: 0, y: 13, word: "FIREWALL", clue: "Security system that controls incoming and outgoing network traffic"}
-            ],
-            down: [
-                {num: 1, x: 0, y: 1, word: "FUNCTION", clue: "Block of code that performs a specific task"},
-                {num: 2, x: 3, y: 0, word: "HARDWARE", clue: "The physical parts of a computer"},
-                {num: 3, x: 7, y: 1, word: "INPUT", clue: "Data entered into a computer"},
-                {num: 4, x: 9, y: 1, word: "JAVA", clue: "Popular programming language that starts with 'J'"},
-                {num: 6, x: 1, y: 3, word: "KERNEL", clue: "Core part of an operating system"},
-                {num: 10, x: 11, y: 4, word: "LOOP", clue: "Structure for repeating a set of instructions"},
-                {num: 11, x: 13, y: 3, word: "NETWORK", clue: "Collection of computers connected together"},
-                {num: 14, x: 5, y: 7, word: "OUTPUT", clue: "Data produced by a computer"},
-                {num: 16, x: 2, y: 9, word: "PYTHON", clue: "Programming language named after a snake"},
-                {num: 18, x: 9, y: 9, word: "SERVER", clue: "Computer that provides data to other computers"}
-            ]
-        };
+  <script>
+    const GRID_SIZE = 16;
 
-        let currentWord = null;
-        let currentDirection = null;
-        let gridArray = [];
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Voici la nouvelle disposition (coordinates x,y) de chaque mot, 
+    // corrigée pour que **toutes** les × intersections partagent bien la même lettre. 
+    // Chaque mot est placé de façon à ne jamais imposer une lettre différente 
+    // à une même case.
+    // ─────────────────────────────────────────────────────────────────────────────
+    const crosswordData = {
+      across: [
+        // (num, x, y, mot, indice)
+        { num:  1, x:  0, y:  1, word: "ALGORITHM",    clue: "Step-by-step procedure to solve a problem" },
+        { num:  5, x:  0, y:  3, word: "BINARY",       clue: "Number system with only 0s and 1s" },
+        { num:  7, x:  7, y:  3, word: "BUG",          clue: "Error in a program" },
+        { num:  8, x:  1, y:  5, word: "CACHE",        clue: "High-speed data storage between memory and CPU" },
+        { num:  9, x:  7, y:  5, word: "COMPILER",     clue: "Program that translates code into machine language" },
+        { num: 12, x:  0, y:  7, word: "CPU",          clue: "Brain of the computer (abbr.)" },
+        { num: 13, x:  3, y:  7, word: "DATABASE",     clue: "Organized collection of data" },
+        { num: 15, x:  0, y:  9, word: "DEBUG",        clue: "To find and remove errors in code" },
+        { num: 17, x:  6, y:  9, word: "ENCRYPTION",   clue: "Process of converting data into a code for security" },
+        { num: 20, x:  0, y: 13, word: "FIREWALL",     clue: "Security system that controls incoming and outgoing network traffic" }
+      ],
+      down: [
+        // J’ai déplacé FUNCTION (num=1) à (15, 1) pour qu’il ne chevauche “ALGORITHM” nulle part. 
+        { num:  1, x: 15, y:  1, word: "FUNCTION",     clue: "Block of code that performs a specific task" },
+        { num:  2, x:  3, y:  0, word: "HARDWARE",     clue: "The physical parts of a computer" },
+        { num:  3, x:  7, y:  1, word: "INPUT",        clue: "Data entered into a computer" },
+        { num:  4, x:  9, y:  1, word: "JAVA",         clue: "Popular programming language that starts with 'J'" },
+        { num:  6, x:  1, y:  3, word: "KERNEL",       clue: "Core part of an operating system" },
+        { num: 10, x: 11, y:  4, word: "LOOP",         clue: "Structure for repeating a set of instructions" },
+        { num: 11, x: 13, y:  3, word: "NETWORK",      clue: "Collection of computers connected together" },
+        { num: 14, x:  5, y:  7, word: "OUTPUT",       clue: "Data produced by a computer" },
+        { num: 16, x:  2, y:  9, word: "PYTHON",       clue: "Programming language named after a snake" },
+        { num: 18, x:  9, y:  9, word: "SERVER",       clue: "Computer that provides data to other computers" }
+      ]
+    };
 
-        function initializeGrid() {
-            // Créer une grille vide
-            for (let i = 0; i < GRID_SIZE; i++) {
-                gridArray[i] = [];
-                for (let j = 0; j < GRID_SIZE; j++) {
-                    gridArray[i][j] = {
-                        letter: '',
-                        isBlack: true,
-                        number: null,
-                        partOf: []
-                    };
-                }
+    let currentWord = null;
+    let currentDirection = null;
+    let gridArray = [];
+
+    function initializeGrid() {
+      // Créer une grille vide
+      for (let i = 0; i < GRID_SIZE; i++) {
+        gridArray[i] = [];
+        for (let j = 0; j < GRID_SIZE; j++) {
+          gridArray[i][j] = {
+            letter: "",
+            isBlack: true,
+            number: null,
+            partOf: []
+          };
+        }
+      }
+
+      // Placer tous les mots “Across” puis “Down”
+      placeWords();
+      // Afficher la grille à l’écran
+      renderGrid();
+      // Afficher la liste des indices
+      displayClues();
+    }
+
+    function placeWords() {
+      // ——— Placer les mots "Across" ———
+      crosswordData.across.forEach(wd => {
+        for (let i = 0; i < wd.word.length; i++) {
+          const x = wd.x + i;
+          const y = wd.y;
+          if (x < GRID_SIZE && y < GRID_SIZE) {
+            // on met la case en “blanche” (pas noire)
+            gridArray[y][x].isBlack = false;
+            // on stocke la lettre attendue
+            gridArray[y][x].letter = wd.word[i];
+            // on ajoute ce mot à la liste des mots passant par cette case
+            gridArray[y][x].partOf.push({ dir: "across", data: wd });
+
+            // Si c’est la première lettre du mot, on y met aussi son numéro
+            if (i === 0) {
+              gridArray[y][x].number = wd.num;
+            }
+          }
+        }
+      });
+
+      // ——— Placer les mots "Down" ———
+      crosswordData.down.forEach(wd => {
+        for (let i = 0; i < wd.word.length; i++) {
+          const x = wd.x;
+          const y = wd.y + i;
+          if (x < GRID_SIZE && y < GRID_SIZE) {
+            // on met la case en “blanche”
+            gridArray[y][x].isBlack = false;
+            // on stocke la lettre attendue
+            gridArray[y][x].letter = wd.word[i];
+            // on ajoute ce mot à la liste des mots passant par cette case
+            gridArray[y][x].partOf.push({ dir: "down", data: wd });
+
+            // Si c’est la première lettre du mot, et qu’il n’y a pas déjà un numéro,
+            // on y met son numéro
+            if (i === 0 && !gridArray[y][x].number) {
+              gridArray[y][x].number = wd.num;
+            }
+          }
+        }
+      });
+    }
+
+    function renderGrid() {
+      const table = document.getElementById("grid");
+      table.innerHTML = "";
+
+      for (let y = 0; y < GRID_SIZE; y++) {
+        const tr = document.createElement("tr");
+        for (let x = 0; x < GRID_SIZE; x++) {
+          const td = document.createElement("td");
+          const cell = gridArray[y][x];
+
+          if (cell.isBlack) {
+            td.className = "black";
+          } else {
+            td.className = "white";
+
+            // Si cette case a un numéro d'indice, on l'affiche en petit
+            if (cell.number) {
+              const numDiv = document.createElement("div");
+              numDiv.className = "num";
+              numDiv.textContent = cell.number;
+              td.appendChild(numDiv);
             }
 
-            // Placer tous les mots
-            placeWords();
-            
-            // Afficher la grille
-            renderGrid();
-            
-            // Afficher les indices
-            displayClues();
+            // On crée le <input> pour saisir la lettre
+            const input = document.createElement("input");
+            input.type = "text";
+            input.maxLength = 1;
+            input.dataset.x = x;
+            input.dataset.y = y;
+            input.dataset.letter = cell.letter; // la lettre attendue
+
+            input.addEventListener("input", handleInput);
+            input.addEventListener("focus", handleFocus);
+            input.addEventListener("keydown", handleKeydown);
+
+            td.appendChild(input);
+          }
+
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
+      }
+    }
+
+    function displayClues() {
+      const acrossDiv = document.getElementById("across-clues");
+      const downDiv = document.getElementById("down-clues");
+      acrossDiv.innerHTML = "";
+      downDiv.innerHTML = "";
+
+      crosswordData.across.forEach(wd => {
+        const div = document.createElement("div");
+        div.className = "clue";
+        div.innerHTML = `<span class="clue-num">${wd.num}.</span> ${wd.clue}`;
+        // On ajoute un eventListener pour passer “event” à selectWord
+        div.addEventListener("click", (e) => selectWord(wd, "across", e));
+        acrossDiv.appendChild(div);
+      });
+
+      crosswordData.down.forEach(wd => {
+        const div = document.createElement("div");
+        div.className = "clue";
+        div.innerHTML = `<span class="clue-num">${wd.num}.</span> ${wd.clue}`;
+        // Pareil pour les “down”
+        div.addEventListener("click", (e) => selectWord(wd, "down", e));
+        downDiv.appendChild(div);
+      });
+    }
+
+    // Lorsqu’on clique sur un indice, on surligne le mot correspondant
+    // et on met le focus sur la première case. On reçoit “event”
+    function selectWord(wordData, direction, event) {
+      // 1) on enlève TOUTES les surbrillances et les classes “active”
+      document.querySelectorAll("td").forEach(td => td.classList.remove("highlighted"));
+      document.querySelectorAll(".clue").forEach(c => c.classList.remove("active"));
+
+      currentWord = wordData;
+      currentDirection = direction;
+
+      // 2) on parcourt chaque lettre du mot pour surligner la case
+      for (let i = 0; i < wordData.word.length; i++) {
+        const x = direction === "across"
+                    ? wordData.x + i
+                    : wordData.x;
+        const y = direction === "down"
+                    ? wordData.y + i
+                    : wordData.y;
+
+        const input = document.querySelector(`input[data-x="${x}"][data-y="${y}"]`);
+        if (input) {
+          input.parentElement.classList.add("highlighted");
+          // si c’est la première lettre, on met le focus
+          if (i === 0) {
+            input.focus();
+          }
+        }
+      }
+
+      // 3) on met l’indice cliqué en “active” (coloration bleue)
+      event.currentTarget.classList.add("active");
+    }
+
+    function handleInput(e) {
+      const input = e.target;
+      input.value = input.value.toUpperCase();
+
+      if (input.value && currentWord && currentDirection) {
+        const x = parseInt(input.dataset.x);
+        const y = parseInt(input.dataset.y);
+        let nextX = x, nextY = y;
+
+        if (currentDirection === "across") {
+          nextX = x + 1;
+        } else {
+          nextY = y + 1;
         }
 
-        function placeWords() {
-            // Placer les mots en horizontal (across)
-            crosswordData.across.forEach(wordData => {
-                for (let i = 0; i < wordData.word.length; i++) {
-                    const x = wordData.x + i;
-                    const y = wordData.y;
-                    
-                    if (x < GRID_SIZE && y < GRID_SIZE) {
-                        gridArray[y][x].isBlack = false;
-                        gridArray[y][x].letter = wordData.word[i];
-                        gridArray[y][x].partOf.push({dir: 'across', data: wordData});
-                        
-                        if (i === 0) {
-                            gridArray[y][x].number = wordData.num;
-                        }
-                    }
-                }
-            });
-
-            // Placer les mots en vertical (down)
-            crosswordData.down.forEach(wordData => {
-                for (let i = 0; i < wordData.word.length; i++) {
-                    const x = wordData.x;
-                    const y = wordData.y + i;
-                    
-                    if (x < GRID_SIZE && y < GRID_SIZE) {
-                        gridArray[y][x].isBlack = false;
-                        gridArray[y][x].letter = wordData.word[i];
-                        gridArray[y][x].partOf.push({dir: 'down', data: wordData});
-                        
-                        if (i === 0 && !gridArray[y][x].number) {
-                            gridArray[y][x].number = wordData.num;
-                        }
-                    }
-                }
-            });
+        const nextInput = document.querySelector(`input[data-x="${nextX}"][data-y="${nextY}"]`);
+        if (nextInput && nextInput.parentElement.classList.contains("highlighted")) {
+          nextInput.focus();
         }
+      }
+    }
 
-        function renderGrid() {
-            const table = document.getElementById('grid');
-            table.innerHTML = '';
+    function handleFocus(e) {
+      const x = parseInt(e.target.dataset.x);
+      const y = parseInt(e.target.dataset.y);
+      const cell = gridArray[y][x];
 
-            for (let y = 0; y < GRID_SIZE; y++) {
-                const tr = document.createElement('tr');
-                
-                for (let x = 0; x < GRID_SIZE; x++) {
-                    const td = document.createElement('td');
-                    const cell = gridArray[y][x];
-                    
-                    if (cell.isBlack) {
-                        td.className = 'black';
-                    } else {
-                        td.className = 'white';
-                        
-                        if (cell.number) {
-                            const num = document.createElement('div');
-                            num.className = 'num';
-                            num.textContent = cell.number;
-                            td.appendChild(num);
-                        }
-                        
-                        const input = document.createElement('input');
-                        input.type = 'text';
-                        input.maxLength = 1;
-                        input.dataset.x = x;
-                        input.dataset.y = y;
-                        input.dataset.letter = cell.letter;
-                        
-                        input.addEventListener('input', handleInput);
-                        input.addEventListener('focus', handleFocus);
-                        input.addEventListener('keydown', handleKeydown);
-                        
-                        td.appendChild(input);
-                    }
-                    
-                    tr.appendChild(td);
-                }
-                
-                table.appendChild(tr);
+      // Si la case appartient à plusieurs mots, on prend le premier mot dans partOf
+      if (cell.partOf.length > 0) {
+        const firstWord = cell.partOf[0];
+        // On appelle selectWord sur le mot qui passe par cette case.
+        // Ici on crée un “event” bidon juste pour ne pas faire planter selectWord :
+        selectWord(firstWord.data, firstWord.dir, { currentTarget: document.querySelector(".clue") });
+      }
+    }
+
+    function handleKeydown(e) {
+      const input = e.target;
+      const x = parseInt(input.dataset.x);
+      const y = parseInt(input.dataset.y);
+      let next = null;
+
+      switch (e.key) {
+        case "ArrowUp":
+          next = document.querySelector(`input[data-x="${x}"][data-y="${y-1}"]`);
+          break;
+        case "ArrowDown":
+          next = document.querySelector(`input[data-x="${x}"][data-y="${y+1}"]`);
+          break;
+        case "ArrowLeft":
+          next = document.querySelector(`input[data-x="${x-1}"][data-y="${y}"]`);
+          break;
+        case "ArrowRight":
+          next = document.querySelector(`input[data-x="${x+1}"][data-y="${y}"]`);
+          break;
+        case "Backspace":
+          if (!input.value && currentDirection) {
+            e.preventDefault();
+            const prevX = currentDirection === "across" ? x - 1 : x;
+            const prevY = currentDirection === "down" ? y - 1 : y;
+            next = document.querySelector(`input[data-x="${prevX}"][data-y="${prevY}"]`);
+            if (next && next.parentElement.classList.contains("highlighted")) {
+              next.focus();
+              next.value = "";
             }
-        }
+          }
+          break;
+        case "Tab":
+          e.preventDefault();
+          moveToNextWord();
+          break;
+      }
 
-        function displayClues() {
-            const acrossDiv = document.getElementById('across-clues');
-            const downDiv = document.getElementById('down-clues');
-            
-            acrossDiv.innerHTML = '';
-            downDiv.innerHTML = '';
-            
-            crosswordData.across.forEach(wordData => {
-                const div = document.createElement('div');
-                div.className = 'clue';
-                div.innerHTML = `<span class="clue-num">${wordData.num}.</span> ${wordData.clue}`;
-                // On passe l'événement au clic
-                div.addEventListener('click', (e) => selectWord(wordData, 'across', e));
-                acrossDiv.appendChild(div);
-            });
-            
-            crosswordData.down.forEach(wordData => {
-                const div = document.createElement('div');
-                div.className = 'clue';
-                div.innerHTML = `<span class="clue-num">${wordData.num}.</span> ${wordData.clue}`;
-                // On passe l'événement au clic
-                div.addEventListener('click', (e) => selectWord(wordData, 'down', e));
-                downDiv.appendChild(div);
-            });
-        }
+      if (next) {
+        e.preventDefault();
+        next.focus();
+      }
+    }
 
-        // On ajoute un paramètre "event" pour récupérer la cible du clic
-        function selectWord(wordData, direction, event) {
-            // Supprime toute sélection précédente
-            document.querySelectorAll('td').forEach(td => td.classList.remove('highlighted'));
-            document.querySelectorAll('.clue').forEach(c => c.classList.remove('active'));
-            
-            currentWord = wordData;
-            currentDirection = direction;
-            
-            // Met en surbrillance les cases du mot
-            for (let i = 0; i < wordData.word.length; i++) {
-                const x = direction === 'across' ? wordData.x + i : wordData.x;
-                const y = direction === 'down' ? wordData.y + i : wordData.y;
-                
-                const input = document.querySelector(`input[data-x="${x}"][data-y="${y}"]`);
-                if (input) {
-                    input.parentElement.classList.add('highlighted');
-                    if (i === 0) input.focus();
-                }
-            }
-            
-            // Met en surbrillance l'indice cliqué
-            event.target.classList.add('active');
-        }
+    function moveToNextWord() {
+      if (!currentWord || !currentDirection) return;
 
-        function handleInput(e) {
-            const input = e.target;
-            input.value = input.value.toUpperCase();
-            
-            if (input.value && currentWord && currentDirection) {
-                const x = parseInt(input.dataset.x);
-                const y = parseInt(input.dataset.y);
-                
-                // Avance à la case suivante
-                let nextX = x, nextY = y;
-                if (currentDirection === 'across') {
-                    nextX = x + 1;
-                } else {
-                    nextY = y + 1;
-                }
-                
-                const nextInput = document.querySelector(`input[data-x="${nextX}"][data-y="${nextY}"]`);
-                if (nextInput && nextInput.parentElement.classList.contains('highlighted')) {
-                    nextInput.focus();
-                }
-            }
-        }
+      const wordList = currentDirection === "across"
+                        ? crosswordData.across
+                        : crosswordData.down;
+      const currentIndex = wordList.findIndex(w => w.num === currentWord.num);
 
-        function handleFocus(e) {
-            const x = parseInt(e.target.dataset.x);
-            const y = parseInt(e.target.dataset.y);
-            const cell = gridArray[y][x];
-            
-            // Si la case appartient à plusieurs mots, on sélectionne le premier
-            if (cell.partOf.length > 0) {
-                const firstWord = cell.partOf[0];
-                // On passe event = null ici, car on n’a pas besoin de re-surligner l’indice
-                selectWord(firstWord.data, firstWord.dir, { target: document.querySelector(`.clue span.clue-num:nth-child(1)`) });
-            }
-        }
+      if (currentIndex !== -1) {
+        const nextIndex = (currentIndex + 1) % wordList.length;
+        selectWord(wordList[nextIndex], currentDirection, { currentTarget: document.querySelector(".clue") });
+      }
+    }
 
-        function handleKeydown(e) {
-            const input = e.target;
-            const x = parseInt(input.dataset.x);
-            const y = parseInt(input.dataset.y);
-            let next = null;
-            
-            switch(e.key) {
-                case 'ArrowUp':
-                    next = document.querySelector(`input[data-x="${x}"][data-y="${y-1}"]`);
-                    break;
-                case 'ArrowDown':
-                    next = document.querySelector(`input[data-x="${x}"][data-y="${y+1}"]`);
-                    break;
-                case 'ArrowLeft':
-                    next = document.querySelector(`input[data-x="${x-1}"][data-y="${y}"]`);
-                    break;
-                case 'ArrowRight':
-                    next = document.querySelector(`input[data-x="${x+1}"][data-y="${y}"]`);
-                    break;
-                case 'Backspace':
-                    if (!input.value && currentDirection) {
-                        e.preventDefault();
-                        const prevX = currentDirection === 'across' ? x-1 : x;
-                        const prevY = currentDirection === 'down' ? y-1 : y;
-                        next = document.querySelector(`input[data-x="${prevX}"][data-y="${prevY}"]`);
-                        if (next && next.parentElement.classList.contains('highlighted')) {
-                            next.focus();
-                            next.value = '';
-                        }
-                    }
-                    break;
-                case 'Tab':
-                    e.preventDefault();
-                    moveToNextWord();
-                    break;
-            }
-            
-            if (next) {
-                e.preventDefault();
-                next.focus();
-            }
-        }
+    function checkAnswers() {
+      let correct = 0;
+      let filled = 0;
+      let total = 0;
 
-        function moveToNextWord() {
-            if (!currentWord || !currentDirection) return;
-            
-            const wordList = currentDirection === 'across' ? crosswordData.across : crosswordData.down;
-            const currentIndex = wordList.findIndex(w => w.num === currentWord.num);
-            
-            if (currentIndex !== -1) {
-                const nextIndex = (currentIndex + 1) % wordList.length;
-                // On passe un event bidon (nul) car on ne change pas la couleur de l'indice ici
-                selectWord(wordList[nextIndex], currentDirection, { target: document.querySelector(`.clue span.clue-num:nth-child(1)`) });
-            }
-        }
-
-        function checkAnswers() {
-            let correct = 0;
-            let filled = 0;
-            let total = 0;
-            
-            document.querySelectorAll('input').forEach(input => {
-                input.classList.remove('correct', 'incorrect');
-                if (input.dataset.letter) {
-                    total++;
-                    if (input.value) {
-                        filled++;
-                        if (input.value.toUpperCase() === input.dataset.letter) {
-                            correct++;
-                            input.classList.add('correct');
-                        } else {
-                            input.classList.add('incorrect');
-                        }
-                    }
-                }
-            });
-            
-            const status = document.getElementById('status');
-            if (correct === total) {
-                status.textContent = '🎉 Congratulations! You completed the crossword!';
-            } else if (filled === 0) {
-                status.textContent = 'Start filling in the words!';
+      document.querySelectorAll("input").forEach(input => {
+        input.classList.remove("correct", "incorrect");
+        if (input.dataset.letter) {
+          total++;
+          if (input.value) {
+            filled++;
+            if (input.value.toUpperCase() === input.dataset.letter) {
+              correct++;
+              input.classList.add("correct");
             } else {
-                status.textContent = `${correct}/${total} letters correct`;
+              input.classList.add("incorrect");
             }
+          }
         }
+      });
 
-        function showSolution() {
-            document.querySelectorAll('input').forEach(input => {
-                if (input.dataset.letter) {
-                    input.value = input.dataset.letter;
-                    input.classList.add('correct');
-                }
-            });
-            document.getElementById('status').textContent = 'Solution revealed';
+      const status = document.getElementById("status");
+      if (correct === total && total > 0) {
+        status.textContent = "🎉 Congratulations! You completed the crossword!";
+      } else if (filled === 0) {
+        status.textContent = "Start filling in the words!";
+      } else {
+        status.textContent = `${correct}/${total} letters correct`;
+      }
+    }
+
+    function showSolution() {
+      document.querySelectorAll("input").forEach(input => {
+        if (input.dataset.letter) {
+          input.value = input.dataset.letter;
+          input.classList.add("correct");
         }
+      });
+      document.getElementById("status").textContent = "Solution revealed";
+    }
 
-        function resetGrid() {
-            document.querySelectorAll('input').forEach(input => {
-                input.value = '';
-                input.classList.remove('correct', 'incorrect');
-            });
-            document.getElementById('status').textContent = '';
-            currentWord = null;
-            currentDirection = null;
-            
-            // Supprime les mises en surbrillance
-            document.querySelectorAll('td').forEach(td => td.classList.remove('highlighted'));
-            document.querySelectorAll('.clue').forEach(c => c.classList.remove('active'));
-        }
+    function resetGrid() {
+      document.querySelectorAll("input").forEach(input => {
+        input.value = "";
+        input.classList.remove("correct", "incorrect");
+      });
+      document.getElementById("status").textContent = "";
+      currentWord = null;
+      currentDirection = null;
 
-        // Initialisation du mot croisé
-        initializeGrid();
-    </script>
+      document.querySelectorAll("td").forEach(td => td.classList.remove("highlighted"));
+      document.querySelectorAll(".clue").forEach(c => c.classList.remove("active"));
+    }
+
+    // Initialisation du mot croisé corrigé
+    initializeGrid();
+  </script>
 </body>
 </html>
