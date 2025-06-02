@@ -329,7 +329,7 @@
         let gridArray = [];
 
         function initializeGrid() {
-            // Create empty grid
+            // Créer une grille vide
             for (let i = 0; i < GRID_SIZE; i++) {
                 gridArray[i] = [];
                 for (let j = 0; j < GRID_SIZE; j++) {
@@ -342,18 +342,18 @@
                 }
             }
 
-            // Place all words
+            // Placer tous les mots
             placeWords();
             
-            // Render grid
+            // Afficher la grille
             renderGrid();
             
-            // Display clues
+            // Afficher les indices
             displayClues();
         }
 
         function placeWords() {
-            // Place across words
+            // Placer les mots en horizontal (across)
             crosswordData.across.forEach(wordData => {
                 for (let i = 0; i < wordData.word.length; i++) {
                     const x = wordData.x + i;
@@ -371,7 +371,7 @@
                 }
             });
 
-            // Place down words
+            // Placer les mots en vertical (down)
             crosswordData.down.forEach(wordData => {
                 for (let i = 0; i < wordData.word.length; i++) {
                     const x = wordData.x;
@@ -445,7 +445,8 @@
                 const div = document.createElement('div');
                 div.className = 'clue';
                 div.innerHTML = `<span class="clue-num">${wordData.num}.</span> ${wordData.clue}`;
-                div.onclick = () => selectWord(wordData, 'across');
+                // On passe l'événement au clic
+                div.addEventListener('click', (e) => selectWord(wordData, 'across', e));
                 acrossDiv.appendChild(div);
             });
             
@@ -453,20 +454,22 @@
                 const div = document.createElement('div');
                 div.className = 'clue';
                 div.innerHTML = `<span class="clue-num">${wordData.num}.</span> ${wordData.clue}`;
-                div.onclick = () => selectWord(wordData, 'down');
+                // On passe l'événement au clic
+                div.addEventListener('click', (e) => selectWord(wordData, 'down', e));
                 downDiv.appendChild(div);
             });
         }
 
-        function selectWord(wordData, direction) {
-            // Clear previous selection
+        // On ajoute un paramètre "event" pour récupérer la cible du clic
+        function selectWord(wordData, direction, event) {
+            // Supprime toute sélection précédente
             document.querySelectorAll('td').forEach(td => td.classList.remove('highlighted'));
             document.querySelectorAll('.clue').forEach(c => c.classList.remove('active'));
             
             currentWord = wordData;
             currentDirection = direction;
             
-            // Highlight cells
+            // Met en surbrillance les cases du mot
             for (let i = 0; i < wordData.word.length; i++) {
                 const x = direction === 'across' ? wordData.x + i : wordData.x;
                 const y = direction === 'down' ? wordData.y + i : wordData.y;
@@ -478,7 +481,7 @@
                 }
             }
             
-            // Highlight clue
+            // Met en surbrillance l'indice cliqué
             event.target.classList.add('active');
         }
 
@@ -490,7 +493,7 @@
                 const x = parseInt(input.dataset.x);
                 const y = parseInt(input.dataset.y);
                 
-                // Move to next cell
+                // Avance à la case suivante
                 let nextX = x, nextY = y;
                 if (currentDirection === 'across') {
                     nextX = x + 1;
@@ -510,10 +513,11 @@
             const y = parseInt(e.target.dataset.y);
             const cell = gridArray[y][x];
             
-            // If cell is part of multiple words, select the first one
+            // Si la case appartient à plusieurs mots, on sélectionne le premier
             if (cell.partOf.length > 0) {
                 const firstWord = cell.partOf[0];
-                selectWord(firstWord.data, firstWord.dir);
+                // On passe event = null ici, car on n’a pas besoin de re-surligner l’indice
+                selectWord(firstWord.data, firstWord.dir, { target: document.querySelector(`.clue span.clue-num:nth-child(1)`) });
             }
         }
 
@@ -568,7 +572,8 @@
             
             if (currentIndex !== -1) {
                 const nextIndex = (currentIndex + 1) % wordList.length;
-                selectWord(wordList[nextIndex], currentDirection);
+                // On passe un event bidon (nul) car on ne change pas la couleur de l'indice ici
+                selectWord(wordList[nextIndex], currentDirection, { target: document.querySelector(`.clue span.clue-num:nth-child(1)`) });
             }
         }
 
@@ -622,12 +627,12 @@
             currentWord = null;
             currentDirection = null;
             
-            // Clear selections
+            // Supprime les mises en surbrillance
             document.querySelectorAll('td').forEach(td => td.classList.remove('highlighted'));
             document.querySelectorAll('.clue').forEach(c => c.classList.remove('active'));
         }
 
-        // Initialize the crossword
+        // Initialisation du mot croisé
         initializeGrid();
     </script>
 </body>
