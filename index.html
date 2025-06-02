@@ -3,16 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Computer Science Crossword</title>
+  <title>Computer Science Crossword Generator</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Computer Science Crossword</h1>
+  <h1>Computer Science Crossword Generator</h1>
 
+  <!-- ---------------------------------------------------
+       Zone de sélection du nombre de mots + bouton Générer
+       --------------------------------------------------- -->
+  <div id="settings-container">
+    <label for="word-count">Nombre de mots :</label>
+    <input type="number" id="word-count" min="5" max="40" value="10" />
+    <button id="generate-button">Générer le mot-croisé</button>
+  </div>
+
+  <!-- ---------------------------------------------------
+       Conteneur de la grille
+       --------------------------------------------------- -->
   <div id="crossword-container">
     <table id="crossword-grid"></table>
   </div>
 
+  <!-- ---------------------------------------------------
+       Conteneur des définitions (Across / Down)
+       --------------------------------------------------- -->
   <div id="clues-container">
     <div class="clues-block">
       <h2>Across</h2>
@@ -24,6 +39,9 @@
     </div>
   </div>
 
+  <!-- ---------------------------------------------------
+       Boutons d’interaction
+       --------------------------------------------------- -->
   <div id="controls">
     <button id="check-button">Vérifier</button>
     <button id="hint-button">Indice</button>

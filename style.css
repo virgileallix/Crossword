@@ -1,5 +1,5 @@
 /* ==============================
-   Style général
+   Style général de la page
    ============================== */
 * {
   box-sizing: border-box;
@@ -25,6 +25,54 @@ h1 {
 }
 
 /* ==============================
+   Zone de sélection (settings)
+   ============================== */
+#settings-container {
+  background: #ffffff;
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#settings-container label {
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+#settings-container input[type="number"] {
+  width: 60px;
+  padding: 5px;
+  font-size: 1rem;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  text-align: center;
+  outline: none;
+}
+
+#settings-container button {
+  padding: 6px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #27ae60;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+#settings-container button:hover {
+  background-color: #1e8449;
+  transform: translateY(-1px);
+}
+#settings-container button:active {
+  transform: translateY(1px);
+}
+
+/* ==============================
    Conteneur de la grille
    ============================== */
 #crossword-container {
@@ -39,7 +87,9 @@ h1 {
   border-collapse: collapse;
 }
 
-/* Chaque case (td) */
+/* --------------------------------------------------
+   Chaque case de la grille
+   -------------------------------------------------- */
 #crossword-grid td {
   width: 30px;
   height: 30px;
@@ -54,12 +104,12 @@ h1 {
   background-color: #34495e;
 }
 
-/* Hover sur case blanche */
+/* Survol d’une case blanche */
 #crossword-grid td:not(.black):hover {
   background-color: #ecf0f1;
 }
 
-/* Input dans case blanche */
+/* Input à l’intérieur d’une case blanche */
 #crossword-grid input {
   width: 100%;
   height: 100%;
@@ -77,7 +127,7 @@ h1 {
   outline: 2px solid #2980b9;
 }
 
-/* Petit numéro dans coin supérieur gauche */
+/* Petit numéro dans le coin supérieur gauche */
 #crossword-grid .cell-number {
   position: absolute;
   top: 1px;
@@ -126,7 +176,7 @@ h1 {
 }
 
 /* ==============================
-   Boutons
+   Boutons d’interaction
    ============================== */
 #controls {
   text-align: center;
