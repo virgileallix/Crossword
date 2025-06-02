@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Computer Science Crossword – 20 words (corrigé)</title>
+  <title>Computer Science Crossword – 20 mots (version remplissable)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -72,6 +72,7 @@
       padding: 0;
       outline: none;
       background: transparent;
+      cursor: pointer;
     }
     input:focus {
       background: #fff59d;
@@ -203,7 +204,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Computer Science Crossword (20 words) – corrigé</h1>
+    <h1>Computer Science Crossword (20 mots) – remplissable</h1>
     
     <div class="game-wrapper">
       <div class="crossword-container">
@@ -261,46 +262,39 @@
     const GRID_SIZE = 16;
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // Voici la nouvelle disposition (coordinates x,y) de chaque mot, 
-    // corrigée pour que **toutes** les × intersections partagent bien la même lettre. 
-    // Chaque mot est placé de façon à ne jamais imposer une lettre différente 
-    // à une même case.
+    // Placement corrigé des 20 mots, sans aucun chevauchement aux lettres différentes.
     // ─────────────────────────────────────────────────────────────────────────────
     const crosswordData = {
       across: [
-        // (num, x, y, mot, indice)
-        { num:  1, x:  0, y:  1, word: "ALGORITHM",    clue: "Step-by-step procedure to solve a problem" },
-        { num:  5, x:  0, y:  3, word: "BINARY",       clue: "Number system with only 0s and 1s" },
-        { num:  7, x:  7, y:  3, word: "BUG",          clue: "Error in a program" },
-        { num:  8, x:  1, y:  5, word: "CACHE",        clue: "High-speed data storage between memory and CPU" },
-        { num:  9, x:  7, y:  5, word: "COMPILER",     clue: "Program that translates code into machine language" },
-        { num: 12, x:  0, y:  7, word: "CPU",          clue: "Brain of the computer (abbr.)" },
-        { num: 13, x:  3, y:  7, word: "DATABASE",     clue: "Organized collection of data" },
-        { num: 15, x:  0, y:  9, word: "DEBUG",        clue: "To find and remove errors in code" },
-        { num: 17, x:  6, y:  9, word: "ENCRYPTION",   clue: "Process of converting data into a code for security" },
-        { num: 20, x:  0, y: 13, word: "FIREWALL",     clue: "Security system that controls incoming and outgoing network traffic" }
+        { num:  1, x:  0, y:  1, word: "ALGORITHM",  clue: "Step-by-step procedure to solve a problem" },
+        { num:  5, x:  0, y:  3, word: "BINARY",     clue: "Number system with only 0s and 1s" },
+        { num:  7, x:  7, y:  3, word: "BUG",        clue: "Error in a program" },
+        { num:  8, x:  1, y:  5, word: "CACHE",      clue: "High-speed data storage between memory and CPU" },
+        { num:  9, x:  7, y:  5, word: "COMPILER",   clue: "Program that translates code into machine language" },
+        { num: 12, x:  0, y:  7, word: "CPU",        clue: "Brain of the computer (abbr.)" },
+        { num: 13, x:  3, y:  7, word: "DATABASE",   clue: "Organized collection of data" },
+        { num: 15, x:  0, y:  9, word: "DEBUG",      clue: "To find and remove errors in code" },
+        { num: 17, x:  6, y:  9, word: "ENCRYPTION", clue: "Process of converting data into a code for security" },
+        { num: 20, x:  0, y: 13, word: "FIREWALL",   clue: "Security system that controls incoming and outgoing network traffic" }
       ],
       down: [
-        // J’ai déplacé FUNCTION (num=1) à (15, 1) pour qu’il ne chevauche “ALGORITHM” nulle part. 
-        { num:  1, x: 15, y:  1, word: "FUNCTION",     clue: "Block of code that performs a specific task" },
-        { num:  2, x:  3, y:  0, word: "HARDWARE",     clue: "The physical parts of a computer" },
-        { num:  3, x:  7, y:  1, word: "INPUT",        clue: "Data entered into a computer" },
-        { num:  4, x:  9, y:  1, word: "JAVA",         clue: "Popular programming language that starts with 'J'" },
-        { num:  6, x:  1, y:  3, word: "KERNEL",       clue: "Core part of an operating system" },
-        { num: 10, x: 11, y:  4, word: "LOOP",         clue: "Structure for repeating a set of instructions" },
-        { num: 11, x: 13, y:  3, word: "NETWORK",      clue: "Collection of computers connected together" },
-        { num: 14, x:  5, y:  7, word: "OUTPUT",       clue: "Data produced by a computer" },
-        { num: 16, x:  2, y:  9, word: "PYTHON",       clue: "Programming language named after a snake" },
-        { num: 18, x:  9, y:  9, word: "SERVER",       clue: "Computer that provides data to other computers" }
+        { num:  1, x: 15, y:  1, word: "FUNCTION",   clue: "Block of code that performs a specific task" },
+        { num:  2, x:  3, y:  0, word: "HARDWARE",   clue: "The physical parts of a computer" },
+        { num:  3, x:  7, y:  1, word: "INPUT",      clue: "Data entered into a computer" },
+        { num:  4, x:  9, y:  1, word: "JAVA",       clue: "Popular programming language that starts with 'J'" },
+        { num:  6, x:  1, y:  3, word: "KERNEL",     clue: "Core part of an operating system" },
+        { num: 10, x: 11, y:  4, word: "LOOP",       clue: "Structure for repeating a set of instructions" },
+        { num: 11, x: 13, y:  3, word: "NETWORK",    clue: "Collection of computers connected together" },
+        { num: 14, x:  5, y:  7, word: "OUTPUT",     clue: "Data produced by a computer" },
+        { num: 16, x:  2, y:  9, word: "PYTHON",     clue: "Programming language named after a snake" },
+        { num: 18, x:  9, y:  9, word: "SERVER",     clue: "Computer that provides data to other computers" }
       ]
     };
 
-    let currentWord = null;
-    let currentDirection = null;
     let gridArray = [];
 
     function initializeGrid() {
-      // Créer une grille vide
+      // 1) Créer une grille vide
       for (let i = 0; i < GRID_SIZE; i++) {
         gridArray[i] = [];
         for (let j = 0; j < GRID_SIZE; j++) {
@@ -312,52 +306,37 @@
           };
         }
       }
-
-      // Placer tous les mots “Across” puis “Down”
+      // 2) Placer les mots (across + down)
       placeWords();
-      // Afficher la grille à l’écran
+      // 3) Afficher la grille
       renderGrid();
-      // Afficher la liste des indices
+      // 4) Afficher les indices
       displayClues();
     }
 
     function placeWords() {
-      // ——— Placer les mots "Across" ———
+      // — Placer les mots “Across”
       crosswordData.across.forEach(wd => {
         for (let i = 0; i < wd.word.length; i++) {
           const x = wd.x + i;
           const y = wd.y;
           if (x < GRID_SIZE && y < GRID_SIZE) {
-            // on met la case en “blanche” (pas noire)
             gridArray[y][x].isBlack = false;
-            // on stocke la lettre attendue
             gridArray[y][x].letter = wd.word[i];
-            // on ajoute ce mot à la liste des mots passant par cette case
             gridArray[y][x].partOf.push({ dir: "across", data: wd });
-
-            // Si c’est la première lettre du mot, on y met aussi son numéro
-            if (i === 0) {
-              gridArray[y][x].number = wd.num;
-            }
+            if (i === 0) gridArray[y][x].number = wd.num;
           }
         }
       });
-
-      // ——— Placer les mots "Down" ———
+      // — Placer les mots “Down”
       crosswordData.down.forEach(wd => {
         for (let i = 0; i < wd.word.length; i++) {
           const x = wd.x;
           const y = wd.y + i;
           if (x < GRID_SIZE && y < GRID_SIZE) {
-            // on met la case en “blanche”
             gridArray[y][x].isBlack = false;
-            // on stocke la lettre attendue
             gridArray[y][x].letter = wd.word[i];
-            // on ajoute ce mot à la liste des mots passant par cette case
             gridArray[y][x].partOf.push({ dir: "down", data: wd });
-
-            // Si c’est la première lettre du mot, et qu’il n’y a pas déjà un numéro,
-            // on y met son numéro
             if (i === 0 && !gridArray[y][x].number) {
               gridArray[y][x].number = wd.num;
             }
@@ -369,41 +348,33 @@
     function renderGrid() {
       const table = document.getElementById("grid");
       table.innerHTML = "";
-
       for (let y = 0; y < GRID_SIZE; y++) {
         const tr = document.createElement("tr");
         for (let x = 0; x < GRID_SIZE; x++) {
           const td = document.createElement("td");
           const cell = gridArray[y][x];
-
           if (cell.isBlack) {
             td.className = "black";
           } else {
             td.className = "white";
-
-            // Si cette case a un numéro d'indice, on l'affiche en petit
+            // Si c’est le début d’un mot, on affiche le numéro
             if (cell.number) {
               const numDiv = document.createElement("div");
               numDiv.className = "num";
               numDiv.textContent = cell.number;
               td.appendChild(numDiv);
             }
-
-            // On crée le <input> pour saisir la lettre
+            // Ajout d’un <input> pour inscrire la lettre
             const input = document.createElement("input");
             input.type = "text";
             input.maxLength = 1;
             input.dataset.x = x;
             input.dataset.y = y;
-            input.dataset.letter = cell.letter; // la lettre attendue
-
+            input.dataset.letter = cell.letter; // la lettre « correcte »
+            // *** SEULEMENT “input” pour forcer la lettre en MAJUSCULES
             input.addEventListener("input", handleInput);
-            input.addEventListener("focus", handleFocus);
-            input.addEventListener("keydown", handleKeydown);
-
             td.appendChild(input);
           }
-
           tr.appendChild(td);
         }
         table.appendChild(tr);
@@ -420,8 +391,8 @@
         const div = document.createElement("div");
         div.className = "clue";
         div.innerHTML = `<span class="clue-num">${wd.num}.</span> ${wd.clue}`;
-        // On ajoute un eventListener pour passer “event” à selectWord
-        div.addEventListener("click", (e) => selectWord(wd, "across", e));
+        // Au clic : on surligne simplement les cases du mot
+        div.addEventListener("click", () => highlightWord(wd, "across", div));
         acrossDiv.appendChild(div);
       });
 
@@ -429,166 +400,57 @@
         const div = document.createElement("div");
         div.className = "clue";
         div.innerHTML = `<span class="clue-num">${wd.num}.</span> ${wd.clue}`;
-        // Pareil pour les “down”
-        div.addEventListener("click", (e) => selectWord(wd, "down", e));
+        div.addEventListener("click", () => highlightWord(wd, "down", div));
         downDiv.appendChild(div);
       });
     }
 
-    // Lorsqu’on clique sur un indice, on surligne le mot correspondant
-    // et on met le focus sur la première case. On reçoit “event”
-    function selectWord(wordData, direction, event) {
-      // 1) on enlève TOUTES les surbrillances et les classes “active”
+    function highlightWord(wordData, direction, clueDiv) {
+      // 1) On enlève toute surbrillance existante
       document.querySelectorAll("td").forEach(td => td.classList.remove("highlighted"));
       document.querySelectorAll(".clue").forEach(c => c.classList.remove("active"));
-
-      currentWord = wordData;
-      currentDirection = direction;
-
-      // 2) on parcourt chaque lettre du mot pour surligner la case
+      // 2) On surligne chaque case du mot
       for (let i = 0; i < wordData.word.length; i++) {
-        const x = direction === "across"
-                    ? wordData.x + i
-                    : wordData.x;
-        const y = direction === "down"
-                    ? wordData.y + i
-                    : wordData.y;
-
+        const x = direction === "across" ? wordData.x + i : wordData.x;
+        const y = direction === "down"   ? wordData.y + i : wordData.y;
         const input = document.querySelector(`input[data-x="${x}"][data-y="${y}"]`);
         if (input) {
           input.parentElement.classList.add("highlighted");
-          // si c’est la première lettre, on met le focus
-          if (i === 0) {
-            input.focus();
-          }
         }
       }
-
-      // 3) on met l’indice cliqué en “active” (coloration bleue)
-      event.currentTarget.classList.add("active");
+      // 3) On met l’indice en bleu
+      clueDiv.classList.add("active");
     }
 
     function handleInput(e) {
-      const input = e.target;
-      input.value = input.value.toUpperCase();
-
-      if (input.value && currentWord && currentDirection) {
-        const x = parseInt(input.dataset.x);
-        const y = parseInt(input.dataset.y);
-        let nextX = x, nextY = y;
-
-        if (currentDirection === "across") {
-          nextX = x + 1;
-        } else {
-          nextY = y + 1;
-        }
-
-        const nextInput = document.querySelector(`input[data-x="${nextX}"][data-y="${nextY}"]`);
-        if (nextInput && nextInput.parentElement.classList.contains("highlighted")) {
-          nextInput.focus();
-        }
-      }
-    }
-
-    function handleFocus(e) {
-      const x = parseInt(e.target.dataset.x);
-      const y = parseInt(e.target.dataset.y);
-      const cell = gridArray[y][x];
-
-      // Si la case appartient à plusieurs mots, on prend le premier mot dans partOf
-      if (cell.partOf.length > 0) {
-        const firstWord = cell.partOf[0];
-        // On appelle selectWord sur le mot qui passe par cette case.
-        // Ici on crée un “event” bidon juste pour ne pas faire planter selectWord :
-        selectWord(firstWord.data, firstWord.dir, { currentTarget: document.querySelector(".clue") });
-      }
-    }
-
-    function handleKeydown(e) {
-      const input = e.target;
-      const x = parseInt(input.dataset.x);
-      const y = parseInt(input.dataset.y);
-      let next = null;
-
-      switch (e.key) {
-        case "ArrowUp":
-          next = document.querySelector(`input[data-x="${x}"][data-y="${y-1}"]`);
-          break;
-        case "ArrowDown":
-          next = document.querySelector(`input[data-x="${x}"][data-y="${y+1}"]`);
-          break;
-        case "ArrowLeft":
-          next = document.querySelector(`input[data-x="${x-1}"][data-y="${y}"]`);
-          break;
-        case "ArrowRight":
-          next = document.querySelector(`input[data-x="${x+1}"][data-y="${y}"]`);
-          break;
-        case "Backspace":
-          if (!input.value && currentDirection) {
-            e.preventDefault();
-            const prevX = currentDirection === "across" ? x - 1 : x;
-            const prevY = currentDirection === "down" ? y - 1 : y;
-            next = document.querySelector(`input[data-x="${prevX}"][data-y="${prevY}"]`);
-            if (next && next.parentElement.classList.contains("highlighted")) {
-              next.focus();
-              next.value = "";
-            }
-          }
-          break;
-        case "Tab":
-          e.preventDefault();
-          moveToNextWord();
-          break;
-      }
-
-      if (next) {
-        e.preventDefault();
-        next.focus();
-      }
-    }
-
-    function moveToNextWord() {
-      if (!currentWord || !currentDirection) return;
-
-      const wordList = currentDirection === "across"
-                        ? crosswordData.across
-                        : crosswordData.down;
-      const currentIndex = wordList.findIndex(w => w.num === currentWord.num);
-
-      if (currentIndex !== -1) {
-        const nextIndex = (currentIndex + 1) % wordList.length;
-        selectWord(wordList[nextIndex], currentDirection, { currentTarget: document.querySelector(".clue") });
-      }
+      // On force la lettre en MAJUSCULE
+      e.target.value = e.target.value.toUpperCase();
     }
 
     function checkAnswers() {
-      let correct = 0;
-      let filled = 0;
-      let total = 0;
-
+      let total = 0, filled = 0, correct = 0;
       document.querySelectorAll("input").forEach(input => {
         input.classList.remove("correct", "incorrect");
         if (input.dataset.letter) {
           total++;
           if (input.value) {
             filled++;
-            if (input.value.toUpperCase() === input.dataset.letter) {
-              correct++;
+            if (input.value === input.dataset.letter) {
               input.classList.add("correct");
+              correct++;
             } else {
               input.classList.add("incorrect");
             }
           }
         }
       });
-
       const status = document.getElementById("status");
       if (correct === total && total > 0) {
-        status.textContent = "🎉 Congratulations! You completed the crossword!";
+        status.textContent = "🎉 Félicitations ! Vous avez terminé le mot-croisé !";
       } else if (filled === 0) {
-        status.textContent = "Start filling in the words!";
+        status.textContent = "Commencez à remplir les cases !";
       } else {
-        status.textContent = `${correct}/${total} letters correct`;
+        status.textContent = `${correct}/${total} lettres correctes`;
       }
     }
 
@@ -599,7 +461,7 @@
           input.classList.add("correct");
         }
       });
-      document.getElementById("status").textContent = "Solution revealed";
+      document.getElementById("status").textContent = "Solution révélée";
     }
 
     function resetGrid() {
@@ -608,14 +470,11 @@
         input.classList.remove("correct", "incorrect");
       });
       document.getElementById("status").textContent = "";
-      currentWord = null;
-      currentDirection = null;
-
       document.querySelectorAll("td").forEach(td => td.classList.remove("highlighted"));
       document.querySelectorAll(".clue").forEach(c => c.classList.remove("active"));
     }
 
-    // Initialisation du mot croisé corrigé
+    // Installation initiale du mot-croisé
     initializeGrid();
   </script>
 </body>
