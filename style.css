@@ -39,7 +39,7 @@ h1 {
   border-collapse: collapse;
 }
 
-/* Chaque case de la grille */
+/* Chaque case (td) */
 #crossword-grid td {
   width: 30px;
   height: 30px;
@@ -54,12 +54,12 @@ h1 {
   background-color: #34495e;
 }
 
-/* Lorsqu’on survole une case blanche, on l’illumine légèrement */
+/* Hover sur case blanche */
 #crossword-grid td:not(.black):hover {
   background-color: #ecf0f1;
 }
 
-/* L’input dans chaque case blanche */
+/* Input dans case blanche */
 #crossword-grid input {
   width: 100%;
   height: 100%;
@@ -72,12 +72,12 @@ h1 {
   caret-color: #2980b9;
 }
 
-/* Focus sur l’input : on voit un contour bleu */
+/* Focus sur input */
 #crossword-grid input:focus {
   outline: 2px solid #2980b9;
 }
 
-/* Petit numéro de case */
+/* Petit numéro dans coin supérieur gauche */
 #crossword-grid .cell-number {
   position: absolute;
   top: 1px;
@@ -156,7 +156,7 @@ h1 {
 }
 
 /* ==============================
-   Style pour les lettres révélées (indice)
+   Style pour les lettres “indice”
    ============================== */
 .cell-hint {
   background-color: #f9e79f !important;

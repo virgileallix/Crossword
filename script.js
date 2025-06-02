@@ -1,45 +1,44 @@
 /**
  * script.js
  *
- * Version 15×15 avec fonctions supplémentaires :
- *  - Bouton “Indice” (révèle une lettre au hasard qui n’est pas encore correcte).
- *  - Bouton “Réinitialiser” (vide toutes les cases et restaure le jeu à l’état initial).
- *
- * On garde la même logique de génération : chaque mot (sauf le 1er) doit
- * absolument croiser au moins une lettre pour former un bloc compact.
+ * Version 15×15, bloc compact, avec :
+ *  - Bouton “Vérifier”
+ *  - Bouton “Indice” (révèle une lettre aléatoire incorrecte)
+ *  - Bouton “Réinitialiser”
+ *  - Révélation complète par séquence secrète → → m t b
+ *  - Descriptions (clues) fixes, numérotées manuellement
  */
 
 // -------------------------------------------------
-// 1) Liste des mots + définitions
+// 1) Liste des mots (20) + définitions (clues)
 // -------------------------------------------------
 const RAW_WORDS = [
-  { answer: "ALGORITHM",  clue: "Step-by-step procedure to solve a problem." },
-  { answer: "BINARY",     clue: "Number system with only 0s and 1s." },
-  { answer: "BUG",        clue: "Error in a program." },
-  { answer: "CACHE",      clue: "High-speed data storage between memory and CPU." },
-  { answer: "COMPILER",   clue: "Program that translates code into machine language." },
-  { answer: "CPU",        clue: "Brain of the computer (abbr.)." },
-  { answer: "DATABASE",   clue: "Organized collection of data." },
-  { answer: "DEBUG",      clue: "To find and remove errors in code." },
   { answer: "ENCRYPTION", clue: "Process of converting data into a code for security." },
+  { answer: "DATABASE",   clue: "Organized collection of data." },
   { answer: "FIREWALL",   clue: "Security system that controls incoming and outgoing network traffic." },
   { answer: "FUNCTION",   clue: "Block of code that performs a specific task." },
-  { answer: "HARDWARE",   clue: "The physical parts of a computer." },
-  { answer: "INPUT",      clue: "Data entered into a computer." },
-  { answer: "JAVA",       clue: "Popular programming language that starts with \"J\"." },
-  { answer: "KERNEL",     clue: "Core part of an operating system." },
-  { answer: "LOOP",       clue: "Structure for repeating a set of instructions." },
   { answer: "NETWORK",    clue: "Collection of computers connected together." },
+  { answer: "CACHE",      clue: "High-speed data storage between memory and CPU." },
+  { answer: "INPUT",      clue: "Data entered into a computer." },
+  { answer: "BUG",        clue: "Error in a program." },
+  // Down
+  { answer: "ALGORITHM",  clue: "Step-by-step procedure to solve a problem." },
+  { answer: "COMPILER",   clue: "Program that translates code into machine language." },
+  { answer: "HARDWARE",   clue: "The physical parts of a computer." },
+  { answer: "BINARY",     clue: "Number system with only 0s and 1s." },
+  { answer: "KERNEL",     clue: "Core part of an operating system." },
   { answer: "OUTPUT",     clue: "Data produced by a computer." },
   { answer: "PYTHON",     clue: "Programming language named after a snake." },
-  { answer: "SERVER",     clue: "Computer that provides data to other computers." }
+  { answer: "SERVER",     clue: "Computer that provides data to other computers." },
+  { answer: "CPU",        clue: "Brain of the computer (abbr.)." },
+  { answer: "DEBUG",      clue: "To find and remove errors in code." },
+  { answer: "JAVA",       clue: "Popular programming language that starts with \"J\"." },
+  { answer: "LOOP",       clue: "Structure for repeating a set of instructions." }
 ];
-// On force les réponses en majuscules
-RAW_WORDS.forEach(obj => {
-  obj.answer = obj.answer.toUpperCase();
-});
+// Toutes les réponses en majuscules (sécurité)
+RAW_WORDS.forEach(obj => obj.answer = obj.answer.toUpperCase());
 
-// Pour optimiser le placement : du plus long au plus court
+// Pour le placement, on trie du plus long au plus court
 let WORDS = RAW_WORDS
   .map((obj, idx) => ({ ...obj, originalIndex: idx }))
   .sort((a, b) => b.answer.length - a.answer.length);
@@ -48,33 +47,33 @@ let WORDS = RAW_WORDS
 // 2) Paramètres de la grille (15×15)
 // -------------------------------------------------
 const GRID_SIZE = 15;
-let grid = [];
-let placedWords = [];
+let grid = [];            // matrice GRID_SIZE×GRID_SIZE (initialisée à null)
+let placedWords = [];     // contiendra les mots effectivement placés avec leurs infos
 
 /**
- * Initialise grid[][] à null.
+ * Initialisation de la grille à null.
  */
 function initGrid() {
   grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
 }
 
 // -------------------------------------------------
-// 3) Fonctions de vérification & comptage croisements
+// 3) canPlace & countCrossings
 // -------------------------------------------------
 /**
  * canPlace(word, r, c, dir)
- *  - Vérifie si “word” (string) se place à (r,c) en dir (“across”|"down").
- *  - N’autorise que les croisements légitimes, pas de débordement, pas de voisins « parasites ».
+ *   - Vérifie si l’on peut placer “word” à la position (r,c) en direction “dir”.
+ *   - Autorise seulement les croisements légitimes, aucun débordement, pas de voisins parasites.
  */
 function canPlace(word, r, c, dir) {
   const L = word.length;
-  // 1) Vérifier limites
+  // 1) Vérifier débordement
   if (dir === "across") {
     if (c < 0 || c + L > GRID_SIZE || r < 0 || r >= GRID_SIZE) return false;
   } else {
     if (r < 0 || r + L > GRID_SIZE || c < 0 || c >= GRID_SIZE) return false;
   }
-  // 2) Case avant/après le mot (bord ou vide)
+  // 2) Case avant/après le mot
   if (dir === "across") {
     if (c - 1 >= 0 && grid[r][c - 1] !== null) return false;
     if (c + L < GRID_SIZE && grid[r][c + L] !== null) return false;
@@ -82,16 +81,16 @@ function canPlace(word, r, c, dir) {
     if (r - 1 >= 0 && grid[r - 1][c] !== null) return false;
     if (r + L < GRID_SIZE && grid[r + L][c] !== null) return false;
   }
-  // 3) Chaque lettre doit être vide ou même lettre (croisement), et pas de voisins orthogonaux parasites
+  // 3) Vérifier chaque lettre
   for (let i = 0; i < L; i++) {
     const rr = r + (dir === "down" ? i : 0);
     const cc = c + (dir === "across" ? i : 0);
     const ch = word[i];
 
-    // a) La case doit être null ou ch
+    // a) Si case occupée par une lettre différente, c’est impossible
     if (grid[rr][cc] !== null && grid[rr][cc] !== ch) return false;
 
-    // b) Si la case est vide, vérifier qu’il n’y ait pas de voisins orthogonaux
+    // b) Si case vide, vérifier qu’aucun voisin orthogonal n’existe
     if (grid[rr][cc] === null) {
       if (dir === "across") {
         if ((rr - 1 >= 0 && grid[rr - 1][cc] !== null) ||
@@ -111,8 +110,8 @@ function canPlace(word, r, c, dir) {
 
 /**
  * countCrossings(word, r, c, dir)
- *  - Retourne le nombre de croisements (lettres identiques déjà dans grid) si l’on plaçait “word”
- *    à (r,c) en “dir”. Sert à exiger ≥1 croisement pour chaque mot (sauf le 1er).
+ *   - Compte combien de lettres du mot “word” se recouvriraient (croisements)
+ *     si on le plaçait à (r,c) en “dir”. Sert à exiger au moins 1 croisement.
  */
 function countCrossings(word, r, c, dir) {
   let crosses = 0;
@@ -125,13 +124,9 @@ function countCrossings(word, r, c, dir) {
 }
 
 // -------------------------------------------------
-// 4) placeWordAt : place le mot dans grid[][]
+// 4) placeWordAt : place le mot dans grid[][],
+//    enregistre dans placedWords
 // -------------------------------------------------
-/**
- * placeWordAt(wordObj, r, c, dir)
- *  - Remplit grid[][] avec les lettres de wordObj.answer en commençant à (r,c) dans “dir”.
- *  - Ajoute un objet à placedWords avec toutes les info utiles (cells, originalIndex, clueNumber=null, etc.).
- */
 function placeWordAt(wordObj, r, c, dir) {
   const word = wordObj.answer;
   const cells = [];
@@ -154,22 +149,14 @@ function placeWordAt(wordObj, r, c, dir) {
 }
 
 // -------------------------------------------------
-// 5) placeAllWords : placement compact 15×15
+// 5) placeAllWords : algorithme de placement 15×15,
+//    bloc compact avec croisement obligatoire
 // -------------------------------------------------
-/**
- * 1) initGrid()
- * 2) Placer le mot le plus long (WORDS[0]) au centre en “across”
- * 3) Pour chaque mot i = 1…n-1 :
- *    - Tenter tous les croisements “naturels”
- *    - Si non placé, balayer tout “across” et “down” en exigeant countCrossings ≥ 1
- *    - Sinon, abandonner le mot
- * Résultat : un bloc unique dense dans la grille.
- */
 function placeAllWords() {
   initGrid();
   placedWords = [];
 
-  // 5.1) Placer le premier mot (le plus long) au centre
+  // 5.1) Placer le premier mot au centre (horizontal)
   {
     const first = WORDS[0].answer;
     const r0 = Math.floor(GRID_SIZE / 2);
@@ -177,13 +164,13 @@ function placeAllWords() {
     placeWordAt(WORDS[0], r0, c0, "across");
   }
 
-  // 5.2) Pour chaque mot suivant, exiger ≥1 croisement
+  // 5.2) Pour chaque mot suivant, exiger au moins 1 croisement
   for (let wi = 1; wi < WORDS.length; wi++) {
     const wordObj = WORDS[wi];
     const word = wordObj.answer;
     let placed = false;
 
-    // 5.2.a) Essayer toutes les intersections possibles
+    // 5.2.a) Essayer toutes les intersections “naturelles”
     for (let letterIdx = 0; letterIdx < word.length && !placed; letterIdx++) {
       const ch = word[letterIdx];
       for (let pw of placedWords) {
@@ -193,7 +180,10 @@ function placeAllWords() {
             const dir = pw.dir === "across" ? "down" : "across";
             const startR = rr - (dir === "down" ? letterIdx : 0);
             const startC = cc - (dir === "across" ? letterIdx : 0);
-            if (canPlace(word, startR, startC, dir) && countCrossings(word, startR, startC, dir) >= 1) {
+            if (
+              canPlace(word, startR, startC, dir) &&
+              countCrossings(word, startR, startC, dir) >= 1
+            ) {
               placeWordAt(wordObj, startR, startC, dir);
               placed = true;
             }
@@ -202,108 +192,178 @@ function placeAllWords() {
       }
     }
 
-    // 5.2.b) Si pas encore placé, balayer tout “across”
+    // 5.2.b) Si non placé, balayer tout “across” en exigeant ≥1 croisement
     if (!placed) {
       for (let r = 0; r < GRID_SIZE && !placed; r++) {
         for (let c = 0; c <= GRID_SIZE - word.length && !placed; c++) {
-          if (canPlace(word, r, c, "across") && countCrossings(word, r, c, "across") >= 1) {
+          if (
+            canPlace(word, r, c, "across") &&
+            countCrossings(word, r, c, "across") >= 1
+          ) {
             placeWordAt(wordObj, r, c, "across");
             placed = true;
           }
         }
       }
     }
-    // 5.2.c) Sinon, balayer tout “down”
+
+    // 5.2.c) Si toujours non placé, balayer tout “down” en exigeant ≥1 croisement
     if (!placed) {
       for (let r = 0; r <= GRID_SIZE - word.length && !placed; r++) {
         for (let c = 0; c < GRID_SIZE && !placed; c++) {
-          if (canPlace(word, r, c, "down") && countCrossings(word, r, c, "down") >= 1) {
+          if (
+            canPlace(word, r, c, "down") &&
+            countCrossings(word, r, c, "down") >= 1
+          ) {
             placeWordAt(wordObj, r, c, "down");
             placed = true;
           }
         }
       }
     }
-    // Si aucun placement ne donne ≥1 croisement, on abandonne ce mot
+    // Si aucun emplacement ne permet ≥1 croisement, on abandonne ce mot
   }
 }
 
 // -------------------------------------------------
-// 6) numberClues : numérote et construit acrossClues/downClues
+// 6) numberClues : numérote manuellement les mots
 // -------------------------------------------------
 /**
- * Parcourt placedWords[] pour détecter chaque début d’“Across” ou de “Down”.
- * Si c’est le cas, assigne un numéro croissant (commence à 1) et note numGrid[r][c].
- * RENVOIE : { acrossClues, downClues, numGrid }
+ * Ici, nous savons déjà :
+ *   Across  :
+ *     1. ENCRYPTION  (10)
+ *     2. DATABASE    (8)
+ *     3. FIREWALL    (8)
+ *     4. FUNCTION    (8)
+ *     5. NETWORK     (7)
+ *     6. CACHE       (5)
+ *     7. INPUT       (5)
+ *     8. BUG         (3)
+ *
+ *   Down    :
+ *     1. ALGORITHM   (9)
+ *     2. COMPILER    (8)
+ *     3. HARDWARE    (8)
+ *     4. BINARY      (6)
+ *     5. KERNEL      (6)
+ *     6. OUTPUT      (6)
+ *     7. PYTHON      (6)
+ *     8. SERVER      (6)
+ *     9. CPU         (3)
+ *    10. DEBUG       (5)
+ *    11. JAVA        (4)
+ *    12. LOOP        (4)
  */
 function numberClues() {
+  // On construit numGrid pour indiquer où placer le numéro dans la grille
   const numGrid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
-  let counter = 1;
 
-  for (let pw of placedWords) {
-    const { row: r, col: c, dir } = pw;
-    let isAcrossStart = false;
-    let isDownStart   = false;
+  // Pour chaque mot placé, on lui attribue son numéro fixe selon sa réponse
+  placedWords.forEach(pw => {
+    switch (pw.answer) {
+      // Across
+      case "ENCRYPTION":
+        pw.clueNumber = 1;
+        break;
+      case "DATABASE":
+        pw.clueNumber = 2;
+        break;
+      case "FIREWALL":
+        pw.clueNumber = 3;
+        break;
+      case "FUNCTION":
+        pw.clueNumber = 4;
+        break;
+      case "NETWORK":
+        pw.clueNumber = 5;
+        break;
+      case "CACHE":
+        pw.clueNumber = 6;
+        break;
+      case "INPUT":
+        pw.clueNumber = 7;
+        break;
+      case "BUG":
+        pw.clueNumber = 8;
+        break;
+      // Down
+      case "ALGORITHM":
+        pw.clueNumber = 1;
+        break;
+      case "COMPILER":
+        pw.clueNumber = 2;
+        break;
+      case "HARDWARE":
+        pw.clueNumber = 3;
+        break;
+      case "BINARY":
+        pw.clueNumber = 4;
+        break;
+      case "KERNEL":
+        pw.clueNumber = 5;
+        break;
+      case "OUTPUT":
+        pw.clueNumber = 6;
+        break;
+      case "PYTHON":
+        pw.clueNumber = 7;
+        break;
+      case "SERVER":
+        pw.clueNumber = 8;
+        break;
+      case "CPU":
+        pw.clueNumber = 9;
+        break;
+      case "DEBUG":
+        pw.clueNumber = 10;
+        break;
+      case "JAVA":
+        pw.clueNumber = 11;
+        break;
+      case "LOOP":
+        pw.clueNumber = 12;
+        break;
+      default:
+        pw.clueNumber = null;
+    }
+    // On place ce numéro dans numGrid pour afficher dans la case
+    if (pw.clueNumber !== null) {
+      numGrid[pw.row][pw.col] = pw.clueNumber;
+    }
+  });
 
-    if (dir === "across") {
-      if ((c - 1 < 0 || grid[r][c - 1] === null) && (c + 1 < GRID_SIZE && grid[r][c + 1] !== null)) {
-        isAcrossStart = true;
-      }
-    }
-    if (dir === "down") {
-      if ((r - 1 < 0 || grid[r - 1][c] === null) && (r + 1 < GRID_SIZE && grid[r + 1][c] !== null)) {
-        isDownStart = true;
-      }
-    }
-    if (isAcrossStart || isDownStart) {
-      if (numGrid[r][c] === null) {
-        numGrid[r][c] = counter;
-        pw.clueNumber = counter;
-        counter++;
-      } else {
-        pw.clueNumber = numGrid[r][c];
-      }
-    }
-  }
-
-  const acrossClues = [];
-  const downClues   = [];
-  for (let pw of placedWords) {
-    if (pw.clueNumber === null) continue;
-    if (pw.dir === "across") {
-      acrossClues.push({
-        number: pw.clueNumber,
-        clue: pw.clue,
-        length: pw.answer.length,
-        answer: pw.answer,
-        r: pw.row,
-        c: pw.col
-      });
-    } else {
-      downClues.push({
-        number: pw.clueNumber,
-        clue: pw.clue,
-        length: pw.answer.length,
-        answer: pw.answer,
-        r: pw.row,
-        c: pw.col
-      });
-    }
-  }
-  acrossClues.sort((a, b) => a.number - b.number);
-  downClues.sort((a, b) => a.number - b.number);
+  // On construit deux listes statiques pour les définitions :
+  const acrossClues = [
+    { number: 1, clue: "Process of converting data into a code for security.", length: 10 },
+    { number: 2, clue: "Organized collection of data.", length: 8 },
+    { number: 3, clue: "Security system that controls incoming and outgoing network traffic.", length: 8 },
+    { number: 4, clue: "Block of code that performs a specific task.", length: 8 },
+    { number: 5, clue: "Collection of computers connected together.", length: 7 },
+    { number: 6, clue: "High-speed data storage between memory and CPU.", length: 5 },
+    { number: 7, clue: "Data entered into a computer.", length: 5 },
+    { number: 8, clue: "Error in a program.", length: 3 }
+  ];
+  const downClues = [
+    { number: 1, clue: "Step-by-step procedure to solve a problem.", length: 9 },
+    { number: 2, clue: "Program that translates code into machine language.", length: 8 },
+    { number: 3, clue: "The physical parts of a computer.", length: 8 },
+    { number: 4, clue: "Number system with only 0s and 1s.", length: 6 },
+    { number: 5, clue: "Core part of an operating system.", length: 6 },
+    { number: 6, clue: "Data produced by a computer.", length: 6 },
+    { number: 7, clue: "Programming language named after a snake.", length: 6 },
+    { number: 8, clue: "Computer that provides data to other computers.", length: 6 },
+    { number: 9, clue: "Brain of the computer (abbr.).", length: 3 },
+    { number: 10, clue: "To find and remove errors in code.", length: 5 },
+    { number: 11, clue: "Popular programming language that starts with \"J\".", length: 4 },
+    { number: 12, clue: "Structure for repeating a set of instructions.", length: 4 }
+  ];
 
   return { acrossClues, downClues, numGrid };
 }
 
 // -------------------------------------------------
-// 7) renderGrid : affiche la grille dans le DOM
+// 7) renderGrid : construit la table HTML
 // -------------------------------------------------
-/**
- * Construit la table HTML #crossword-grid à partir de grid[][] et numGrid[][].
- * Cases noires => <td class="black"></td>
- * Cases blanches => <td><input ...> [+ petit numéro si numGrid[r][c] != null]</td>
- */
 function renderGrid(numGrid) {
   const table = document.getElementById("crossword-grid");
   table.innerHTML = "";
@@ -315,7 +375,7 @@ function renderGrid(numGrid) {
       if (grid[r][c] === null) {
         td.classList.add("black");
       } else {
-        // Case blanche : on met un input
+        // Case blanche : <input>
         const input = document.createElement("input");
         input.setAttribute("maxlength", "1");
         input.setAttribute("data-r", r);
@@ -323,7 +383,7 @@ function renderGrid(numGrid) {
         input.style.textTransform = "uppercase";
         td.appendChild(input);
 
-        // Si numGrid[r][c] existe, on affiche le petit numéro
+        // Si on a un numéro à afficher, on ajoute <div class="cell-number">n</div>
         if (numGrid[r][c] !== null) {
           const span = document.createElement("div");
           span.classList.add("cell-number");
@@ -340,10 +400,6 @@ function renderGrid(numGrid) {
 // -------------------------------------------------
 // 8) renderClues : affiche les définitions (Across/Down)
 // -------------------------------------------------
-/**
- * Remplit <ol id="across-clues"> et <ol id="down-clues">.
- * Format : “num. définition (longueur)”
- */
 function renderClues(acrossClues, downClues) {
   const olA = document.getElementById("across-clues");
   const olD = document.getElementById("down-clues");
@@ -363,11 +419,13 @@ function renderClues(acrossClues, downClues) {
 }
 
 // -------------------------------------------------
-// 9) Fonctions “Vérifier”, “Indice”, “Reveal All”, “Réinitialiser”
+// 9) Vérifier / Indice / RevealAll / Reset / Secret
 // -------------------------------------------------
 /**
- * Vérifier : colorie en vert clair si la lettre entrée est bonne,
- * sinon en rouge clair. Ne bloque pas l’input (on peut corriger).
+ * Vérifie chaque case blanche : 
+ *   - Si la lettre tapée est correcte → fond vert clair.
+ *   - Sinon → fond rouge clair.
+ *   - Les cases “indice” (jaune) perdent leur classe.
  */
 function checkAnswers() {
   document.querySelectorAll("#crossword-grid input").forEach(input => {
@@ -375,26 +433,22 @@ function checkAnswers() {
     const c = parseInt(input.getAttribute("data-c"));
     const sol = grid[r][c];
     const val = input.value.toUpperCase();
-    // Enlever toute classe d’indice précédemment appliquée
+
     input.classList.remove("cell-hint");
     if (val === sol) {
-      input.style.backgroundColor = "#c8e6c9"; // vert clair
+      input.style.backgroundColor = "#c8e6c9";
     } else {
-      input.style.backgroundColor = "#ffcdd2"; // rouge clair
+      input.style.backgroundColor = "#ffcdd2";
     }
   });
 }
 
 /**
- * Indice : choisit aléatoirement une case blanche qui n’a pas encore
- * la bonne lettre, et place la bonne lettre dedans. Ajoute la classe
- * .cell-hint pour colorer le fond (jaune clair).
+ * Indice : choisit aléatoirement une case incorrecte ou vide,
+ * y place la lettre correcte, la désactive et applique la classe .cell-hint.
  */
 function giveHint() {
-  // Récupérer toutes les cases <input>
   const allInputs = Array.from(document.querySelectorAll("#crossword-grid input"));
-
-  // Filtrer celles qui sont “incomplètes” (soit vides, soit incorrectes)
   const incorrectOrEmpty = allInputs.filter(input => {
     const r = parseInt(input.getAttribute("data-r"));
     const c = parseInt(input.getAttribute("data-c"));
@@ -404,22 +458,22 @@ function giveHint() {
   });
 
   if (incorrectOrEmpty.length === 0) {
-    alert("Toutes les lettres sont déjà correctes ! Vous avez terminé le mot-croisé.");
+    alert("Toutes les lettres sont déjà correctes !");
     return;
   }
 
-  // Choisir une case au hasard parmi celles-ci
   const randIndex = Math.floor(Math.random() * incorrectOrEmpty.length);
   const chosenInput = incorrectOrEmpty[randIndex];
   const rr = parseInt(chosenInput.getAttribute("data-r"));
   const cc = parseInt(chosenInput.getAttribute("data-c"));
   chosenInput.value = grid[rr][cc];
-  chosenInput.disabled = true;                // on bloque la modification
-  chosenInput.classList.add("cell-hint");     // style “indice” (jaune clair)
+  chosenInput.disabled = true;
+  chosenInput.classList.add("cell-hint");
 }
 
 /**
- * Reveal All : remplit toutes les cases avec la solution, désactive les inputs.
+ * Reveal all : révèle toute la solution (s’il est appelé),
+ * mais nous ne l’appelons qu’à partir du “secret”.
  */
 function revealAll() {
   document.querySelectorAll("#crossword-grid input").forEach(input => {
@@ -433,8 +487,8 @@ function revealAll() {
 }
 
 /**
- * Réinitialiser : vide toutes les cases, remet les inputs en état normal.
- * Ne régénère pas la grille complète, juste on efface les saisies/indices.
+ * Réinitialiser : efface tout, enlève les couleurs et indices, 
+ * mais ne reconstruit pas la grille (elle reste visible).
  */
 function resetGrid() {
   document.querySelectorAll("#crossword-grid input").forEach(input => {
@@ -446,7 +500,31 @@ function resetGrid() {
 }
 
 // -------------------------------------------------
-// 10) Initialisation au chargement de la page
+// 10) Gestion du “secret code” → → m t b
+// -------------------------------------------------
+let secretSequence = [];
+const SECRET = ["ArrowRight", "ArrowRight", "m", "t", "b"];
+
+window.addEventListener("keydown", e => {
+  // On fait défiler notre buffer (secretSequence)
+  secretSequence.push(e.key);
+  // Ne garder que les 5 derniers
+  if (secretSequence.length > SECRET.length) {
+    secretSequence.shift();
+  }
+  // Vérifier si ça correspond
+  if (
+    secretSequence.length === SECRET.length &&
+    secretSequence.every((k, i) => k.toLowerCase() === SECRET[i].toLowerCase())
+  ) {
+    revealAll();
+    alert("Code secret reconnu ! Voici la solution complète.");
+    secretSequence = [];
+  }
+});
+
+// -------------------------------------------------
+// 11) Initialisation au chargement de la page
 // -------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
   placeAllWords();
@@ -457,6 +535,5 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("check-button").addEventListener("click", checkAnswers);
   document.getElementById("hint-button").addEventListener("click", giveHint);
-  document.getElementById("reveal-button").addEventListener("click", revealAll);
   document.getElementById("reset-button").addEventListener("click", resetGrid);
 });
