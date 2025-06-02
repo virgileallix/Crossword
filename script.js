@@ -5,11 +5,9 @@
  *  1. Choix du nombre de mots (5 → WORD_POOL.length)
  *  2. Tirage aléatoire de N mots dans un grand dictionnaire
  *  3. Placement compact (chaque mot, sauf le 1er, doit croiser au moins un mot déjà en place)
- *  4. Affichage de la grille + définitions “Across” / “Down”
+ *  4. Affichage de la grille + définitions “Across” / “Down”, **dynamiques**
  *  5. Boutons “Vérifier”, “Indice”, “Réinitialiser”
  *  6. Code secret “→ → m t b” pour révéler la solution complète
- *  7. Vidage explicite de la grille à chaque génération
- *  8. Possibilité de “Entrée” dans #word-count pour lancer la génération
  */
 
 // -------------------------------------------------
@@ -69,15 +67,15 @@ const WORD_POOL = [
 WORD_POOL.forEach(obj => obj.answer = obj.answer.toUpperCase());
 
 // -------------------------------------------------
-// 2) Variables globales de l’application
+// 2) Variables globales
 // -------------------------------------------------
-let WORDS = [];              // Tableau des mots sélectionnés
+let WORDS = [];              // Mots sélectionnés (d'après le pool)
 const GRID_SIZE = 15;        // Grille 15×15
-let grid = [];               // Matrice 15×15 (initialisée à null)
-let placedWords = [];        // Mots effectivement placés et leurs infos
+let grid = [];               // Matrice 15×15 de `null` ou caractères
+let placedWords = [];        // Objets { answer, clue, row, col, dir, cells, originalIndex, clueNumber }
 
 // -------------------------------------------------
-// 3) Initialisation de la grille (grid[][] à null)
+// 3) Initialiser la grille (grid) à `null`
 // -------------------------------------------------
 function initGrid() {
   grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
@@ -94,7 +92,7 @@ function canPlace(word, r, c, dir) {
   } else {
     if (r < 0 || r + L > GRID_SIZE || c < 0 || c >= GRID_SIZE) return false;
   }
-  // 2) Case avant/après
+  // 2) Case avant / après
   if (dir === "across") {
     if (c - 1 >= 0 && grid[r][c - 1] !== null) return false;
     if (c + L < GRID_SIZE && grid[r][c + L] !== null) return false;
@@ -102,12 +100,14 @@ function canPlace(word, r, c, dir) {
     if (r - 1 >= 0 && grid[r - 1][c] !== null) return false;
     if (r + L < GRID_SIZE && grid[r + L][c] !== null) return false;
   }
-  // 3) Chaque lettre doit être vide ou identique, et pas de voisins parasites
+  // 3) Chaque lettre doit être vide ou identique, sans voisins parasites
   for (let i = 0; i < L; i++) {
     const rr = r + (dir === "down" ? i : 0);
     const cc = c + (dir === "across" ? i : 0);
     const ch = word[i];
+    // a) Si case occupée par autre lettre, impossible
     if (grid[rr][cc] !== null && grid[rr][cc] !== ch) return false;
+    // b) Si case vide, vérifier qu’il n’y ait pas de voisin orthogonal 
     if (grid[rr][cc] === null) {
       if (dir === "across") {
         if ((rr - 1 >= 0 && grid[rr - 1][cc] !== null) ||
@@ -126,7 +126,7 @@ function canPlace(word, r, c, dir) {
 }
 
 function countCrossings(word, r, c, dir) {
-  // Compte combien de lettres du mot “word” croiseraient (lettres identiques déjà en place)
+  // Compte le nombre de croisements (lettres identiques déjà posées)
   let crosses = 0;
   for (let i = 0; i < word.length; i++) {
     const rr = r + (dir === "down" ? i : 0);
@@ -149,7 +149,7 @@ function placeWordAt(wordObj, r, c, dir) {
     cells.push({ row: rr, col: cc });
   }
   placedWords.push({
-    answer: word,
+    answer: wordObj.answer,
     clue: wordObj.clue,
     row: r,
     col: c,
@@ -167,9 +167,9 @@ function placeAllWords() {
   initGrid();
   placedWords = [];
 
-  if (WORDS.length === 0) return; // Si aucun mot sélectionné, ne rien faire
+  if (WORDS.length === 0) return;
 
-  // 6.1) Premier mot (plus long) au centre, horizontal
+  // 6.1) Placer le premier mot (plus long) au centre en “across”
   {
     const first = WORDS[0].answer;
     const r0 = Math.floor(GRID_SIZE / 2);
@@ -177,19 +177,20 @@ function placeAllWords() {
     placeWordAt(WORDS[0], r0, c0, "across");
   }
 
-  // 6.2) Pour chaque mot suivant, exiger au moins 1 croisement
+  // 6.2) Pour chaque mot suivant, exiger un croisement >= 1
   for (let wi = 1; wi < WORDS.length; wi++) {
     const wordObj = WORDS[wi];
     const word = wordObj.answer;
     let placed = false;
 
-    // 6.2.a) Essayer toutes les intersections “naturelles”
+    // 6.2.a) Tenter toutes les intersections “naturelles”
     for (let letterIdx = 0; letterIdx < word.length && !placed; letterIdx++) {
       const ch = word[letterIdx];
       for (let pw of placedWords) {
         for (let cellIdx = 0; cellIdx < pw.cells.length && !placed; cellIdx++) {
           const { row: rr, col: cc } = pw.cells[cellIdx];
           if (grid[rr][cc] === ch) {
+            // Si pw.dir == "across", on tente "down", sinon "across"
             const dir = pw.dir === "across" ? "down" : "across";
             const startR = rr - (dir === "down" ? letterIdx : 0);
             const startC = cc - (dir === "across" ? letterIdx : 0);
@@ -205,7 +206,7 @@ function placeAllWords() {
       }
     }
 
-    // 6.2.b) Si non placé, balayer tout “across” en exigeant ≥1 croisement
+    // 6.2.b) Si pas encore placé, balayer tout “across” (en exigeant >=1 croisement)
     if (!placed) {
       for (let r = 0; r < GRID_SIZE && !placed; r++) {
         for (let c = 0; c <= GRID_SIZE - word.length && !placed; c++) {
@@ -220,7 +221,7 @@ function placeAllWords() {
       }
     }
 
-    // 6.2.c) Sinon, balayer tout “down” en exigeant ≥1 croisement
+    // 6.2.c) Si toujours pas placé, balayer tout “down” (en exigeant >=1 croisement)
     if (!placed) {
       for (let r = 0; r <= GRID_SIZE - word.length && !placed; r++) {
         for (let c = 0; c < GRID_SIZE && !placed; c++) {
@@ -234,72 +235,70 @@ function placeAllWords() {
         }
       }
     }
-    // Si aucun emplacement ne permet ≥1 croisement, on “oublie” ce mot
+    // Si aucun emplacement ne donne >=1 croisement, on “oublie” ce mot
   }
 }
 
 // -------------------------------------------------
-// 7) numberClues : assignation manuelle des numéros
+// 7) numberClues : numérote et crée les listes dynamiques
 // -------------------------------------------------
 function numberClues() {
+  // numGrid va contenir le numéro à afficher dans chaque case de départ
   const numGrid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(null));
+  let counter = 1;
+
+  // On parcourt la grille ligne par ligne, colonne par colonne
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (grid[r][c] === null) continue;
+
+      // Détecter si cette case est le début d’un mot “across”
+      const isAcrossStart =
+        (c === 0 || grid[r][c - 1] === null) &&        // rien à gauche
+        (c + 1 < GRID_SIZE && grid[r][c + 1] !== null); // lettre à droite
+
+      // Détecter si cette case est le début d’un mot “down”
+      const isDownStart =
+        (r === 0 || grid[r - 1][c] === null) &&        // rien au-dessus
+        (r + 1 < GRID_SIZE && grid[r + 1][c] !== null); // lettre en-dessous
+
+      if (isAcrossStart || isDownStart) {
+        // On attribue un numéro si cette case n’en a pas déjà
+        if (numGrid[r][c] === null) {
+          numGrid[r][c] = counter++;
+        }
+        // On enregistre ce numéro dans le placedWord correspondant
+        // (il peut y avoir un mot across ET un mot down qui commencent ici)
+        placedWords.forEach(pw => {
+          if (pw.row === r && pw.col === c) {
+            pw.clueNumber = numGrid[r][c];
+          }
+        });
+      }
+    }
+  }
+
+  // Construire deux listes dynamiques “acrossClues” et “downClues”
+  const acrossClues = [];
+  const downClues = [];
 
   placedWords.forEach(pw => {
-    switch (pw.answer) {
-      // Across (1→8)
-      case "ENCRYPTION":      pw.clueNumber = 1; break;
-      case "DATABASE":        pw.clueNumber = 2; break;
-      case "FIREWALL":        pw.clueNumber = 3; break;
-      case "FUNCTION":        pw.clueNumber = 4; break;
-      case "NETWORK":         pw.clueNumber = 5; break;
-      case "CACHE":           pw.clueNumber = 6; break;
-      case "INPUT":           pw.clueNumber = 7; break;
-      case "BUG":             pw.clueNumber = 8; break;
-      // Down (1→12)
-      case "ALGORITHM":       pw.clueNumber = 1; break;
-      case "COMPILER":        pw.clueNumber = 2; break;
-      case "HARDWARE":        pw.clueNumber = 3; break;
-      case "BINARY":          pw.clueNumber = 4; break;
-      case "KERNEL":          pw.clueNumber = 5; break;
-      case "OUTPUT":          pw.clueNumber = 6; break;
-      case "PYTHON":          pw.clueNumber = 7; break;
-      case "SERVER":          pw.clueNumber = 8; break;
-      case "CPU":             pw.clueNumber = 9; break;
-      case "DEBUG":           pw.clueNumber = 10; break;
-      case "JAVA":            pw.clueNumber = 11; break;
-      case "LOOP":            pw.clueNumber = 12; break;
-      default:                pw.clueNumber = null;
-    }
-    if (pw.clueNumber !== null) {
-      numGrid[pw.row][pw.col] = pw.clueNumber;
+    if (pw.clueNumber === null) return;
+    const entry = {
+      number: pw.clueNumber,
+      clue: pw.clue,
+      length: pw.answer.length
+    };
+    if (pw.dir === "across") {
+      acrossClues.push(entry);
+    } else {
+      downClues.push(entry);
     }
   });
 
-  // Définitions fixes (Across et Down)
-  const acrossClues = [
-    { number: 1,  clue: "Process of converting data into a code for security.", length: 10 },
-    { number: 2,  clue: "Organized collection of data.", length: 8 },
-    { number: 3,  clue: "Security system that controls incoming and outgoing network traffic.", length: 8 },
-    { number: 4,  clue: "Block of code that performs a specific task.", length: 8 },
-    { number: 5,  clue: "Collection of computers connected together.", length: 7 },
-    { number: 6,  clue: "High-speed data storage between memory and CPU.", length: 5 },
-    { number: 7,  clue: "Data entered into a computer.", length: 5 },
-    { number: 8,  clue: "Error in a program.", length: 3 }
-  ];
-  const downClues = [
-    { number: 1,  clue: "Step-by-step procedure to solve a problem.", length: 9 },
-    { number: 2,  clue: "Program that translates code into machine language.", length: 8 },
-    { number: 3,  clue: "The physical parts of a computer.", length: 8 },
-    { number: 4,  clue: "Number system with only 0s and 1s.", length: 6 },
-    { number: 5,  clue: "Core part of an operating system.", length: 6 },
-    { number: 6,  clue: "Data produced by a computer.", length: 6 },
-    { number: 7,  clue: "Programming language named after a snake.", length: 6 },
-    { number: 8,  clue: "Computer that provides data to other computers.", length: 6 },
-    { number: 9,  clue: "Brain of the computer (abbr.).", length: 3 },
-    { number: 10, clue: "To find and remove errors in code.", length: 5 },
-    { number: 11, clue: "Popular programming language that starts with \"J\".", length: 4 },
-    { number: 12, clue: "Structure for repeating a set of instructions.", length: 4 }
-  ];
+  // Trier par numéro croissant
+  acrossClues.sort((a, b) => a.number - b.number);
+  downClues.sort((a, b) => a.number - b.number);
 
   return { acrossClues, downClues, numGrid };
 }
@@ -309,7 +308,7 @@ function numberClues() {
 // -------------------------------------------------
 function renderGrid(numGrid) {
   const table = document.getElementById("crossword-grid");
-  // On vide explicitement la table avant reconstruction
+  // Vider l’ancienne table
   table.innerHTML = "";
 
   for (let r = 0; r < GRID_SIZE; r++) {
@@ -327,7 +326,7 @@ function renderGrid(numGrid) {
         input.style.textTransform = "uppercase";
         td.appendChild(input);
 
-        // Si un numéro existe, on le place
+        // Si on a un numéro à afficher ici, on l’ajoute
         if (numGrid[r][c] !== null) {
           const span = document.createElement("div");
           span.classList.add("cell-number");
@@ -342,12 +341,12 @@ function renderGrid(numGrid) {
 }
 
 // -------------------------------------------------
-// 9) renderClues : affiche les définitions
+// 9) renderClues : affiche les définitions “Across” / “Down”
 // -------------------------------------------------
 function renderClues(acrossClues, downClues) {
   const olA = document.getElementById("across-clues");
   const olD = document.getElementById("down-clues");
-  // On vide les listes avant d’y insérer
+  // Vider les anciennes listes
   olA.innerHTML = "";
   olD.innerHTML = "";
 
@@ -450,7 +449,7 @@ document.addEventListener("keydown", e => {
 // 12) Fonction utilitaire : tirer N mots aléatoires
 // -------------------------------------------------
 function pickRandomWords(n) {
-  // On copie le pool dans un tableau temporaire et on le mélange
+  // Copie du WORD_POOL pour le mélanger
   const temp = [...WORD_POOL];
   for (let i = temp.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -485,7 +484,7 @@ function generateCrossword() {
     .map((obj, idx) => ({ ...obj, originalIndex: idx }))
     .sort((a, b) => b.answer.length - a.answer.length);
 
-  // 2) Construire la grille (placement)
+  // 2) Construire la grille (placement des mots)
   placeAllWords();
 
   // 3) Numérotation des définitions
@@ -505,14 +504,14 @@ function generateCrossword() {
 // 14) Initialisation au chargement de la page
 // -------------------------------------------------
 window.addEventListener("DOMContentLoaded", () => {
-  // 1) On fixe la valeur maximale de #word-count au nombre de mots du dictionnaire
+  // 1) Fixer la valeur maximale de #word-count au nombre de mots du dictionnaire
   const countInput = document.getElementById("word-count");
   countInput.setAttribute("max", WORD_POOL.length.toString());
 
   // 2) Liaison du bouton “Générer le mot-croisé”
   document.getElementById("generate-button").addEventListener("click", generateCrossword);
 
-  // 3) Permettre “Entrée” dans l’input #word-count pour déclencher la génération
+  // 3) Permettre “Entrée” dans l’input #word-count pour lancer la génération
   countInput.addEventListener("keydown", e => {
     if (e.key === "Enter") {
       e.preventDefault();
